@@ -20,8 +20,12 @@
  */
 package com.hzh.consumer;
 
+import com.hzh.provider.registry.RegistryFactory;
+import com.hzh.provider.registry.RegistryService;
 import lombok.Data;
 import org.springframework.beans.factory.FactoryBean;
+
+import java.lang.reflect.Proxy;
 
 /**
  * @author dahuang
@@ -52,6 +56,16 @@ public class RpcReferenceBean implements FactoryBean<Object> {
     }
 
     public void init() throws Exception {
-        // TODO 生成动态代理对象并赋值给 object
+
+        // 生成动态代理对象并赋值给 object
+        RegistryService registryService = RegistryFactory.getInstance(this.registryAddr, RegistryType.valueOf(this.registryType));
+
+        this.object = Proxy.newProxyInstance(
+
+            interfaceClass.getClassLoader(),
+
+            new Class<?>[]{interfaceClass},
+
+            new RpcInvokerProxy(serviceVersion, timeout, registryService));
     }
 }
