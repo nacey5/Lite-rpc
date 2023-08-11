@@ -17,11 +17,32 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */package com.hzh.rpc.serialization;/**
- *
- *
+ */
+package com.hzh.rpc.serialization;
+
+import lombok.Getter;
+
+/**
  * @author dahuang
  * @version : SerializationTypeEnum.java, v 0.1 2023-08-10 16:35 dahuang
  */
-    public class SerializationTypeEnum {
+public enum SerializationTypeEnum {
+    HESSIAN(0x10),
+    JSON(0x20);
+
+    @Getter
+    private final int type;
+
+    SerializationTypeEnum(int type) {
+        this.type = type;
+    }
+
+    public static SerializationTypeEnum findByType(byte serializationType) {
+        for (SerializationTypeEnum typeEnum : SerializationTypeEnum.values()) {
+            if (typeEnum.getType() == serializationType) {
+                return typeEnum;
+            }
+        }
+        return HESSIAN;
+    }
 }

@@ -17,11 +17,28 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */package com.hzh.rpc.serialization;/**
- *
- *
+ */
+package com.hzh.rpc.serialization;
+
+/**
  * @author dahuang
  * @version : SerializationFactory.java, v 0.1 2023-08-10 16:35 dahuang
  */
-    public class SerializationFactory {
+public class SerializationFactory {
+
+    public static RpcSerialization getRpcSerialization(byte serializationType) {
+
+        SerializationTypeEnum typeEnum = SerializationTypeEnum.findByType(serializationType);
+
+        switch (typeEnum) {
+            case HESSIAN:
+                return new HessianSerialization();
+            case JSON:
+                return new JsonSerialization();
+            default:
+                throw new IllegalArgumentException("serialization type is illegal, " + serializationType);
+        }
+
+    }
+
 }

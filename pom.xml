@@ -11,11 +11,23 @@
     <groupId>com.hzh</groupId>
     <artifactId>mini-rpc</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
     <name>mini-rpc</name>
     <description>mini-rpc</description>
+    <modules>
+        <module>rpc-consumer</module>
+        <module>rpc-core</module>
+        <module>rpc-facade</module>
+        <module>rpc-protocol</module>
+        <module>rpc-provider</module>
+        <module>rpc-registry</module>
+        <module>rpc-test</module>
+    </modules>
     <properties>
         <java.version>11</java.version>
         <spring-cloud.version>2021.0.8</spring-cloud.version>
+        <hession.version>4.0.51</hession.version>
+        <org.apache.curator.version>2.12.0</org.apache.curator.version>
     </properties>
     <dependencies>
         <dependency>
@@ -46,6 +58,34 @@
                 <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.caucho</groupId>
+                <artifactId>hessian</artifactId>
+                <version>${hession.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-framework</artifactId>
+                <version>${org.apache.curator.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>log4j</groupId>
+                        <artifactId>log4j</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-recipes</artifactId>
+                <version>${org.apache.curator.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-x-discovery</artifactId>
+                <version>${org.apache.curator.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

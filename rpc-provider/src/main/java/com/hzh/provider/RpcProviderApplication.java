@@ -17,11 +17,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */package com.hzh.provider;/**
- *
- *
+ */
+package com.hzh.provider;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+
+/**
  * @author dahuang
  * @version : RpcProviderApplication.java, v 0.1 2023-08-10 10:34 dahuang
  */
-    public class RpcProviderApplication {
+@EnableConfigurationProperties
+@SpringBootApplication
+public class RpcProviderApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(RpcProviderApplication.class, args);
+    }
 }

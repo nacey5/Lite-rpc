@@ -17,11 +17,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */package com.hzh.rpc.common;/**
- *
- *
+ */
+package com.hzh.rpc.common;
+
+/**
  * @author dahuang
  * @version : MiniRpcRequest.java, v 0.1 2023-08-10 16:09 dahuang
  */
-    public class MiniRpcRequest {
+import lombok.Data;
+
+import java.io.Serializable;
+
+@Data
+public class MiniRpcRequest implements Serializable {
+    private String serviceVersion;
+    private String className;
+    private String methodName;
+    private Object[] params;
+    private Class<?>[] parameterTypes;
 }

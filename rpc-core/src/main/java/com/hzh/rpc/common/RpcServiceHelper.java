@@ -18,28 +18,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hzh.consumer.annotation;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package com.hzh.rpc.common;
 
 /**
  * @author dahuang
- * @version : RpcReference.java, v 0.1 2023-08-10 11:23 dahuang
+ * @version : RpcServiceHelper.java, v 0.1 2023-08-11 14:44 dahuang
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-@Autowired
-public @interface RpcReference {
-    String serviceVersion() default "1.0";
-
-    String registryType() default "ZOOKEEPER";
-
-    String registryAddress() default "127.0.0.1:2181";
-
-    long timeout() default 5000;
+public class RpcServiceHelper {
+    public static String buildServiceKey(String serviceName, String serviceVersion) {
+        return String.join("#", serviceName, serviceVersion);
+    }
 }

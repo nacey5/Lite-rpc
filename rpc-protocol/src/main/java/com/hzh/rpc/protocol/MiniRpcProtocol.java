@@ -17,11 +17,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */package com.hzh.rpc.protocol;/**
- *
- *
+ */
+package com.hzh.rpc.protocol;
+
+import lombok.Data;
+
+import java.io.Serializable;
+
+/**
  * @author dahuang
  * @version : MiniRpcProtocol.java, v 0.1 2023-08-10 16:07 dahuang
  */
-    public class MiniRpcProtocol {
+@Data
+public class MiniRpcProtocol<T> implements Serializable {
+
+    private MsgHeader header; // 协议头
+
+    private T body; // 协议体
+
 }

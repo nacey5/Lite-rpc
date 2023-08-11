@@ -17,11 +17,27 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */package com.hzh.provider.annotation;/**
- *
- *
+ */
+package com.hzh.provider.annotation;
+
+import org.springframework.stereotype.Component;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
  * @author dahuang
  * @version : RpcService.java, v 0.1 2023-08-10 11:17 dahuang
  */
-    public @interface RpcService {
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Component
+public @interface RpcService {
+    Class<?> serviceInterface() default Object.class;
+
+    String serviceVersion() default "1.0";
+
 }

@@ -17,11 +17,41 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */package com.hzh.consumer;/**
- *
- *
+ */
+package com.hzh.consumer;
+
+import lombok.Data;
+import org.springframework.beans.factory.FactoryBean;
+
+/**
  * @author dahuang
  * @version : RpcReferenceBean.java, v 0.1 2023-08-10 11:28 dahuang
  */
-    public class RpcReferenceBean {
+@Data
+public class RpcReferenceBean implements FactoryBean<Object> {
+
+    private Class<?> interfaceClass;
+
+    private String serviceVersion;
+
+    private String registryType;
+
+    private String registryAddr;
+
+    private long timeout;
+
+    private Object object;
+    @Override
+    public Object getObject() throws Exception {
+        return object;
+    }
+
+    @Override
+    public Class<?> getObjectType() {
+        return interfaceClass;
+    }
+
+    public void init() throws Exception {
+        // TODO 生成动态代理对象并赋值给 object
+    }
 }

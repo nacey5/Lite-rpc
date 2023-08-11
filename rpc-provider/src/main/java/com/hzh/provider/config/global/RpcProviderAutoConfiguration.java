@@ -17,11 +17,34 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */package com.hzh.provider.config.global;/**
- *
- *
+ */
+package com.hzh.provider.config.global;
+
+import com.hzh.provider.config.properties.RpcProperties;
+import com.hzh.provider.registry.RegistryService;
+import com.hzh.provider.registry.RegistryType;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import javax.annotation.Resource;
+
+/**
  * @author dahuang
  * @version : RpcProviderAutoConfiguration.java, v 0.1 2023-08-10 10:39 dahuang
  */
-    public class RpcProviderAutoConfiguration {
+@Configuration
+@EnableConfigurationProperties(RpcProperties.class)
+public class RpcProviderAutoConfiguration {
+
+    @Resource
+    private RpcProperties rpcProperties;
+
+    @Bean
+    public RpcProvider init() throws Exception {
+        RegistryType type = RegistryType.valueOf(rpcProperties.getRegistryType());
+        RegistryService serviceRegistry = RegistryFactory.getInstance(rpcProperties.getRegistryAddress(), type);
+        return new RpcProvider(rpcProperties.getServicePort(), serviceRegistry);
+    }
+
 }

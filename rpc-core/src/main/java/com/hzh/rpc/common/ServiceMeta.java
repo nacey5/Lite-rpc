@@ -17,11 +17,24 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */package com.hzh.rpc.common;/**
- *
- *
+ */
+package com.hzh.rpc.common;
+
+import lombok.Data;
+
+/**
  * @author dahuang
  * @version : ServiceMeta.java, v 0.1 2023-08-11 11:17 dahuang
  */
-    public class ServiceMeta {
+@Data
+public class ServiceMeta {
+
+    private String serviceName;
+
+    private String serviceVersion;
+
+    private String serviceAddr;
+
+    private int servicePort;
+
 }

@@ -17,11 +17,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */package com.hzh.provider.registry;/**
- *
- *
+ */
+package com.hzh.provider.registry;
+
+/**
  * @author dahuang
  * @version : RegistryType.java, v 0.1 2023-08-10 10:46 dahuang
  */
-    public class RegistryType {
+public enum RegistryType {
+    ZOOKEEPER, EUREKA;
 }

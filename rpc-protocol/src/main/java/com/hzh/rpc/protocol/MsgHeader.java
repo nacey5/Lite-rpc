@@ -17,11 +17,32 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */package com.hzh.rpc.protocol;/**
- *
- *
+ */
+package com.hzh.rpc.protocol;
+
+import lombok.Data;
+
+import java.io.Serializable;
+
+/**
  * @author dahuang
  * @version : MsgHeader.java, v 0.1 2023-08-10 16:08 dahuang
  */
-    public class MsgHeader {
+@Data
+public class MsgHeader implements Serializable {
+
+    private short magic; // 魔数
+
+    private byte version; // 协议版本号
+
+    private byte serialization; // 序列化算法
+
+    private byte msgType; // 报文类型
+
+    private byte status; // 状态
+
+    private long requestId; // 消息 ID
+
+    private int msgLen; // 数据长度
+
 }

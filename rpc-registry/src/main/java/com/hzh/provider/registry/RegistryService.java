@@ -17,11 +17,24 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */package com.hzh.provider.registry;/**
- *
- *
+ */
+package com.hzh.provider.registry;
+
+import com.hzh.rpc.common.ServiceMeta;
+
+import java.io.IOException;
+
+/**
  * @author dahuang
  * @version : RegistryService.java, v 0.1 2023-08-10 10:48 dahuang
  */
-    public interface RegistryService {
+public interface RegistryService {
+    void register(ServiceMeta serviceMeta) throws Exception;
+
+    void unRegister(ServiceMeta serviceMeta) throws Exception;
+
+    ServiceMeta discovery(String serviceName, int invokerHashCode) throws Exception;
+
+    void destroy() throws IOException;
+
 }

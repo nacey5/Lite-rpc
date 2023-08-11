@@ -17,11 +17,32 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */package com.hzh.provider.registry;/**
- *
- *
+ */
+package com.hzh.provider.registry;
+
+/**
  * @author dahuang
  * @version : RegistryFactory.java, v 0.1 2023-08-10 10:49 dahuang
  */
-    public class RegistryFactory {
+public class RegistryFactory {
+    private static volatile RegistryService registryService;
+
+    public static RegistryService getInstance(String registryAddr, RegistryType type) throws Exception {
+
+        if (null == registryService) {
+            synchronized (RegistryFactory.class) {
+                if (null == registryService) {
+                    switch (type) {
+                        case ZOOKEEPER:
+                            registryService = new ZookeeperRegistryService(registryAddr);
+                            break;
+                        case EUREKA:
+                            registryService = new EurekaRegistryService(registryAddr);
+                            break;
+                    }
+                }
+            }
+        }
+        return registryService;
+    }
 }

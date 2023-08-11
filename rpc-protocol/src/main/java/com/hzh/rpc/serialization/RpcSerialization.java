@@ -17,11 +17,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */package com.hzh.rpc.serialization;/**
- *
- *
+ */
+package com.hzh.rpc.serialization;
+
+import java.io.IOException;
+
+/**
  * @author dahuang
  * @version : RpcSerialization.java, v 0.1 2023-08-10 16:11 dahuang
  */
-    public class RpcSerialization {
+public interface RpcSerialization {
+    <T> byte[] serialize(T obj) throws IOException;
+
+    <T> T deserialize(byte[] data, Class<T> clz) throws IOException;
 }
