@@ -1,4 +1,0 @@
-rpc:
-  servicePort: 2181
-  registryType: ZOOKEEPER
-  registryAddress: 192.168.199.128:2182

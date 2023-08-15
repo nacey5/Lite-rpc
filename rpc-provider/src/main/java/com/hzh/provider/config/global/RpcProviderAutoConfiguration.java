@@ -21,14 +21,13 @@
 package com.hzh.provider.config.global;
 
 import com.hzh.provider.RpcProvider;
-import com.hzh.provider.config.properties.RpcProperties;
+import com.hzh.rpc.common.RpcProperties;
 import com.hzh.provider.registry.RegistryFactory;
 import com.hzh.provider.registry.RegistryService;
 import com.hzh.provider.registry.RegistryType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.Resource;
 
@@ -46,9 +45,9 @@ public class RpcProviderAutoConfiguration {
 
     @Bean
     public RpcProvider init() throws Exception {
-        log.warn("init rpc provider,zookeeper address:{}", rpcProperties.getRegistryAddress());
+        log.warn("init rpc provider,zookeeper address:{}", rpcProperties.getRegistryAddr());
         RegistryType type = RegistryType.valueOf(rpcProperties.getRegistryType());
-        RegistryService serviceRegistry = RegistryFactory.getInstance(rpcProperties.getRegistryAddress(), type);
+        RegistryService serviceRegistry = RegistryFactory.getInstance(rpcProperties.getRegistryAddr(), type);
         return new RpcProvider(rpcProperties.getServicePort(), serviceRegistry);
     }
 

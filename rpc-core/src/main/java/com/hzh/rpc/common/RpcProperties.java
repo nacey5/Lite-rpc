@@ -18,7 +18,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hzh.provider.config.properties;
+package com.hzh.rpc.common;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +32,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "rpc")
 public class RpcProperties {
     private Integer servicePort;
-    private String registryAddress;
+    private String registryAddr;
     private String registryType;
 }
