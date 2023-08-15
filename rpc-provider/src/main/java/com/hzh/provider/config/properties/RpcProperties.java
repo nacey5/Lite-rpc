@@ -21,6 +21,7 @@
 package com.hzh.provider.config.properties;
 
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -31,6 +32,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "rpc")
 public class RpcProperties {
     private Integer servicePort;
+    @Value("${rpc.registryAddress}")
     private String registryAddress;
     private String registryType;
 }

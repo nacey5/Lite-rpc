@@ -22,7 +22,9 @@ package com.hzh.consumer;
 
 import com.hzh.provider.registry.RegistryFactory;
 import com.hzh.provider.registry.RegistryService;
-import lombok.Data;
+import com.hzh.provider.registry.RegistryType;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.FactoryBean;
 
 import java.lang.reflect.Proxy;
@@ -31,7 +33,8 @@ import java.lang.reflect.Proxy;
  * @author dahuang
  * @version : RpcReferenceBean.java, v 0.1 2023-08-10 11:28 dahuang
  */
-@Data
+@Setter
+@Slf4j
 public class RpcReferenceBean implements FactoryBean<Object> {
 
     private Class<?> interfaceClass;
@@ -57,6 +60,7 @@ public class RpcReferenceBean implements FactoryBean<Object> {
 
     public void init() throws Exception {
 
+        log.info("zookeeper addr:{}",this.registryAddr);
         // 生成动态代理对象并赋值给 object
         RegistryService registryService = RegistryFactory.getInstance(this.registryAddr, RegistryType.valueOf(this.registryType));
 

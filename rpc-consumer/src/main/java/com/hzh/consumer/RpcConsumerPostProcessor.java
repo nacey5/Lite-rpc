@@ -21,6 +21,7 @@
 package com.hzh.consumer;
 
 import com.hzh.consumer.annotation.RpcReference;
+import com.hzh.rpc.common.RpcConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;

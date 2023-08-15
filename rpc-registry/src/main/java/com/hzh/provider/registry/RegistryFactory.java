@@ -37,7 +37,7 @@ public class RegistryFactory {
                             registryService = new ZookeeperRegistryService(registryAddr);
                             break;
                         case EUREKA:
-                            registryService = new EurekaRegistryService(registryAddr);
+//                            registryService = new EurekaRegistryService(registryAddr);
                             break;
                     }
                 }

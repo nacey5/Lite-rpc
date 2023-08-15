@@ -23,7 +23,6 @@ package com.hzh.rpc.serialization;
 import com.caucho.hessian.io.HessianSerializerInput;
 import com.caucho.hessian.io.HessianSerializerOutput;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.SerializationException;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
