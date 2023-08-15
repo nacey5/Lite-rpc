@@ -32,7 +32,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "rpc")
 public class RpcProperties {
     private Integer servicePort;
-    @Value("${rpc.registryAddress}")
     private String registryAddress;
     private String registryType;
 }

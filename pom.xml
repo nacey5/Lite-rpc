@@ -29,6 +29,7 @@
         <hession.version>4.0.51</hession.version>
         <org.apache.curator.version>2.12.0</org.apache.curator.version>
         <io.netty.verion>4.1.42.Final</io.netty.verion>
+        <junit.version>4.12</junit.version>
     </properties>
     <dependencies>
         <dependency>
@@ -98,6 +99,13 @@
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
                 <version>${io.netty.verion}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

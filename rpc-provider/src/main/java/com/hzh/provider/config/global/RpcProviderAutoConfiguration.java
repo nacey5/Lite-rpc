@@ -36,7 +36,7 @@ import javax.annotation.Resource;
  * @author dahuang
  * @version : RpcProviderAutoConfiguration.java, v 0.1 2023-08-10 10:39 dahuang
  */
-@Configuration
+//@Configuration
 @EnableConfigurationProperties(RpcProperties.class)
 @Slf4j
 public class RpcProviderAutoConfiguration {
@@ -46,7 +46,7 @@ public class RpcProviderAutoConfiguration {
 
     @Bean
     public RpcProvider init() throws Exception {
-        log.info("init rpc provider,zookeeper address:{}", rpcProperties.getRegistryAddress());
+        log.warn("init rpc provider,zookeeper address:{}", rpcProperties.getRegistryAddress());
         RegistryType type = RegistryType.valueOf(rpcProperties.getRegistryType());
         RegistryService serviceRegistry = RegistryFactory.getInstance(rpcProperties.getRegistryAddress(), type);
         return new RpcProvider(rpcProperties.getServicePort(), serviceRegistry);
