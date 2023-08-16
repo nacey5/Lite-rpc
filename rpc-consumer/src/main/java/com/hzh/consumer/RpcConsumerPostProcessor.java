@@ -72,6 +72,7 @@ public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanCl
             builder.addPropertyValue("registryType", annotation.registryType());
             builder.addPropertyValue("registryAddr", annotation.registryAddress());
             builder.addPropertyValue("timeout", annotation.timeout());
+            builder.addPropertyValue("proxyType", annotation.proxyType()); // 设置代理类型
 
             BeanDefinition beanDefinition = builder.getBeanDefinition();
             rpcRefBeanDefinitions.put(field.getName(), beanDefinition);

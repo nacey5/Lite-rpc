@@ -35,6 +35,7 @@
         <curator.version>2.12.0</curator.version>
         <netty.version>4.1.42.Final</netty.version>
         <lombok.version>1.18.28</lombok.version>
+        <assist.version>3.27.0-GA</assist.version>
     </properties>
 
     <dependencyManagement>
@@ -155,6 +156,12 @@
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
                 <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.javassist</groupId>
+                <artifactId>javassist</artifactId>
+                <version>${assist.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

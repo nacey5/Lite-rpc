@@ -1,5 +1,6 @@
 package com.hzh.consumer.annotation;
 
+import com.hzh.consumer.ProxyType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.annotation.ElementType;
@@ -19,5 +20,7 @@ public @interface RpcReference {
     String registryAddress() default "192.168.199.128:2181";
 
     long timeout() default 5000;
+
+    ProxyType proxyType() default ProxyType.JDK; // 默认为JDK代理
 
 }

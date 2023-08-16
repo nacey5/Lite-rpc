@@ -1,5 +1,6 @@
 package com.hzh.consumer.controller;
 
+import com.hzh.consumer.ProxyType;
 import com.hzh.consumer.annotation.RpcReference;
 import com.hzh.provider.facade.HelloFacade;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class HelloController {
 
     @SuppressWarnings({"SpringJavaAutowiredFieldsWarningInspection", "SpringJavaInjectionPointsAutowiringInspection"})
-    @RpcReference(serviceVersion = "1.0.0", timeout = 3000)
+    @RpcReference(serviceVersion = "1.0.0", timeout = 3000,proxyType = ProxyType.JAVASSIST)
     private HelloFacade helloFacade;
 
     @RequestMapping(value = "/hello", method = RequestMethod.GET)
