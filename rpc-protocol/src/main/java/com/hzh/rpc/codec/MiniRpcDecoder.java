@@ -1,23 +1,3 @@
-/*
- * Aloudata.com Inc.
- * Copyright (c) 2021-2023 All Rights Reserved.
- *
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.hzh.rpc.codec;
 
 import com.hzh.rpc.common.MiniRpcRequest;
@@ -34,15 +14,19 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 
 import java.util.List;
 
-/**
- * @author dahuang
- * @version : MiniRpcDecoder.java, v 0.1 2023-08-10 16:48 dahuang
- */
 public class MiniRpcDecoder extends ByteToMessageDecoder {
+
+    /*
+    +---------------------------------------------------------------+
+    | 魔数 2byte | 协议版本号 1byte | 序列化算法 1byte | 报文类型 1byte  |
+    +---------------------------------------------------------------+
+    | 状态 1byte |        消息 ID 8byte     |      数据长度 4byte     |
+    +---------------------------------------------------------------+
+    |                   数据内容 （长度不定）                          |
+    +---------------------------------------------------------------+
+    */
     @Override
-
     public final void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-
         if (in.readableBytes() < ProtocolConstants.HEADER_TOTAL_LEN) {
             return;
         }
@@ -58,14 +42,15 @@ public class MiniRpcDecoder extends ByteToMessageDecoder {
         byte msgType = in.readByte();
         byte status = in.readByte();
         long requestId = in.readLong();
+
         int dataLength = in.readInt();
         if (in.readableBytes() < dataLength) {
             in.resetReaderIndex();
             return;
         }
-
         byte[] data = new byte[dataLength];
         in.readBytes(data);
+
         MsgType msgTypeEnum = MsgType.findByType(msgType);
         if (msgTypeEnum == null) {
             return;
@@ -79,8 +64,8 @@ public class MiniRpcDecoder extends ByteToMessageDecoder {
         header.setRequestId(requestId);
         header.setMsgType(msgType);
         header.setMsgLen(dataLength);
-        RpcSerialization rpcSerialization = SerializationFactory.getRpcSerialization(serializeType);
 
+        RpcSerialization rpcSerialization = SerializationFactory.getRpcSerialization(serializeType);
         switch (msgTypeEnum) {
             case REQUEST:
                 MiniRpcRequest request = rpcSerialization.deserialize(data, MiniRpcRequest.class);
@@ -90,6 +75,7 @@ public class MiniRpcDecoder extends ByteToMessageDecoder {
                     protocol.setBody(request);
                     out.add(protocol);
                 }
+                break;
             case RESPONSE:
                 MiniRpcResponse response = rpcSerialization.deserialize(data, MiniRpcResponse.class);
                 if (response != null) {
@@ -98,12 +84,10 @@ public class MiniRpcDecoder extends ByteToMessageDecoder {
                     protocol.setBody(response);
                     out.add(protocol);
                 }
+                break;
             case HEARTBEAT:
                 // TODO
                 break;
-
         }
-
     }
-
 }

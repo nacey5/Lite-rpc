@@ -4,7 +4,7 @@ import io.netty.util.concurrent.Promise;
 import lombok.Data;
 
 @Data
-public class MiniRpcFuture <T>{
+public class MiniRpcFuture<T> {
     private Promise<T> promise;
     private long timeout;
 

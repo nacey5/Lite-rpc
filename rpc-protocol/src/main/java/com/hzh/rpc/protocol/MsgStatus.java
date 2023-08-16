@@ -12,4 +12,5 @@ public enum MsgStatus {
     MsgStatus(int code) {
         this.code = code;
     }
+
 }

@@ -1,32 +1,12 @@
-/*
- * Aloudata.com Inc.
- * Copyright (c) 2021-2023 All Rights Reserved.
- *
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.hzh.consumer;
 
 import com.hzh.consumer.annotation.RpcReference;
 import com.hzh.rpc.common.RpcConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -41,13 +21,9 @@ import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * @author dahuang
- * @version : RpcConsumerPostProcessor.java, v 0.1 2023-08-10 11:31 dahuang
- */
 @Component
 @Slf4j
-public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanPostProcessor, BeanFactoryPostProcessor {
+public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanClassLoaderAware, BeanFactoryPostProcessor {
 
     private ApplicationContext context;
 
@@ -57,13 +33,16 @@ public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanPo
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.context=applicationContext;
+        this.context = applicationContext;
     }
 
     @Override
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)
-        throws BeansException {
+    public void setBeanClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
 
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
         for (String beanDefinitionName : beanFactory.getBeanDefinitionNames()) {
             BeanDefinition beanDefinition = beanFactory.getBeanDefinition(beanDefinitionName);
             String beanClassName = beanDefinition.getBeanClassName();
@@ -81,9 +60,7 @@ public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanPo
             registry.registerBeanDefinition(beanName, rpcRefBeanDefinitions.get(beanName));
             log.info("registered RpcReferenceBean {} success.", beanName);
         });
-
     }
-
 
     private void parseRpcReference(Field field) {
         RpcReference annotation = AnnotationUtils.getAnnotation(field, RpcReference.class);
@@ -95,8 +72,10 @@ public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanPo
             builder.addPropertyValue("registryType", annotation.registryType());
             builder.addPropertyValue("registryAddr", annotation.registryAddress());
             builder.addPropertyValue("timeout", annotation.timeout());
+
             BeanDefinition beanDefinition = builder.getBeanDefinition();
             rpcRefBeanDefinitions.put(field.getName(), beanDefinition);
         }
     }
+
 }

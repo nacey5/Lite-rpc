@@ -1,16 +1,14 @@
 /*
- * Aloudata.com Inc.
- * Copyright (c) 2021-2023 All Rights Reserved.
+ * Copyright (c) 2011-2018, Meituan Dianping. All Rights Reserved.
  *
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements. See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,23 +16,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.hzh.rpc.serialization;
 
-import java.io.IOException;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * @author dahuang
- * @version : JsonSerialization.java, v 0.1 2023-08-10 16:39 dahuang
- */
-public class JsonSerialization implements RpcSerialization{
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+
+public class JsonSerialization implements RpcSerialization {
+
+    private static final ObjectMapper MAPPER;
+
+    static {
+        MAPPER = generateMapper(JsonInclude.Include.ALWAYS);
+    }
+
+    private static ObjectMapper generateMapper(JsonInclude.Include include) {
+        ObjectMapper customMapper = new ObjectMapper();
+
+        customMapper.setSerializationInclusion(include);
+        customMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        customMapper.configure(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS, true);
+        customMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+
+        return customMapper;
+    }
 
     @Override
     public <T> byte[] serialize(T obj) throws IOException {
-        return new byte[0];
+        return obj instanceof String ? ((String) obj).getBytes() : MAPPER.writeValueAsString(obj).getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
     public <T> T deserialize(byte[] data, Class<T> clz) throws IOException {
-        return null;
+        return MAPPER.readValue(Arrays.toString(data), clz);
     }
 }
