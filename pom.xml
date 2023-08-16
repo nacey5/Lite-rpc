@@ -30,6 +30,11 @@
         <java.version>1.8</java.version>
         <jackson.version>2.12.3</jackson.version>
         <eureka.version>3.1.4</eureka.version>
+        <junit.version>4.12</junit.version>
+        <hessian.version>4.0.38</hessian.version>
+        <curator.version>2.12.0</curator.version>
+        <netty.version>4.1.42.Final</netty.version>
+        <lombok.version>1.18.28</lombok.version>
     </properties>
 
     <dependencyManagement>
@@ -73,20 +78,20 @@
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
-                <version>4.1.42.Final</version>
+                <version>${netty.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.28</version>
+                <version>${lombok.version}</version>
             </dependency>
 
             <!-- Zookeeper -->
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-framework</artifactId>
-                <version>2.12.0</version>
+                <version>${curator.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>log4j</groupId>
@@ -97,12 +102,12 @@
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-recipes</artifactId>
-                <version>2.12.0</version>
+                <version>${curator.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-x-discovery</artifactId>
-                <version>2.12.0</version>
+                <version>${curator.version}</version>
             </dependency>
 
             <!--eureka-->
@@ -142,13 +147,13 @@
             <dependency>
                 <groupId>com.caucho</groupId>
                 <artifactId>hessian</artifactId>
-                <version>4.0.38</version>
+                <version>${hessian.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
-                <version>4.12</version>
+                <version>${junit.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
