@@ -1,5 +1,6 @@
 package com.hzh.provider.registry;
 
+import com.hzh.provider.registry.loadbalancer.HashStrategy;
 import com.hzh.provider.registry.loadbalancer.ZKConsistentHashLoadBalancer;
 import com.hzh.rpc.common.RpcServiceHelper;
 import com.hzh.rpc.common.ServiceMeta;
@@ -61,7 +62,9 @@ public class ZookeeperRegistryService implements RegistryService {
     @Override
     public ServiceMeta discovery(String serviceName, int invokerHashCode) throws Exception {
         Collection<ServiceInstance<ServiceMeta>> serviceInstances = serviceDiscovery.queryForInstances(serviceName);
-        ServiceInstance<ServiceMeta> instance = new ZKConsistentHashLoadBalancer().select((List<ServiceInstance<ServiceMeta>>) serviceInstances, invokerHashCode);
+        ZKConsistentHashLoadBalancer zkConsistentHashLoadBalancer = new ZKConsistentHashLoadBalancer();
+        zkConsistentHashLoadBalancer.setHashStrategy(HashStrategy.MURMUR); // 使用MurmurHash
+        ServiceInstance<ServiceMeta> instance = zkConsistentHashLoadBalancer.select((List<ServiceInstance<ServiceMeta>>) serviceInstances, invokerHashCode);
         if (instance != null) {
             return instance.getPayload();
         }
