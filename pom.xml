@@ -25,6 +25,13 @@
         <version>2.1.12.RELEASE</version>
     </parent>
 
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>1.8</java.version>
+        <jackson.version>2.12.3</jackson.version>
+        <eureka.version>3.1.4</eureka.version>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -98,6 +105,19 @@
                 <version>2.12.0</version>
             </dependency>
 
+            <!--eureka-->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+                <version>${eureka.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+                <version>${eureka.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
@@ -133,11 +153,5 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>1.8</java.version>
-        <jackson.version>2.12.3</jackson.version>
-    </properties>
 
 </project>
