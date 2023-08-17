@@ -6,6 +6,7 @@ import com.hzh.rpc.common.MiniRpcFuture;
 import com.hzh.rpc.common.MiniRpcRequest;
 import com.hzh.rpc.common.MiniRpcRequestHolder;
 import com.hzh.rpc.common.MiniRpcResponse;
+import com.hzh.rpc.heartbeat.HeartbeatRequest;
 import com.hzh.rpc.protocol.MiniRpcProtocol;
 import com.hzh.rpc.protocol.MsgHeader;
 import com.hzh.rpc.protocol.MsgType;
@@ -17,6 +18,8 @@ import io.netty.util.concurrent.DefaultPromise;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
+
+import static com.hzh.provider.registry.RegistryFactory.registryService;
 
 public class RpcInvokerProxy implements InvocationHandler {
     public static final ThreadLocal<MiniRpcProtocol<MiniRpcRequest>> CURRENT_REQUEST = new ThreadLocal<>();
@@ -46,7 +49,7 @@ public class RpcInvokerProxy implements InvocationHandler {
         return protocol;
     }
 
-    private MsgHeader createHeader() {
+    public static MsgHeader createHeader() {
         //暂时先不引入这个ThreadLocal，因为consumer对象是复用的，关闭consumer再进行remove会导致内存泄漏
 //        CURRENT_REQUEST.set(protocol);
         MsgHeader header = new MsgHeader();

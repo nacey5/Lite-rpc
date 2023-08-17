@@ -2,7 +2,7 @@ package com.hzh.provider.registry;
 
 public class RegistryFactory {
 
-    private static volatile RegistryService registryService;
+    public static volatile RegistryService registryService;
 
     public static RegistryService getInstance(String registryAddr, RegistryType type) throws Exception {
 

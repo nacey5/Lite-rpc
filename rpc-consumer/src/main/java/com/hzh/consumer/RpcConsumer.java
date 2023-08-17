@@ -2,25 +2,28 @@ package com.hzh.consumer;
 
 import com.hzh.consumer.pool.RpcConnection;
 import com.hzh.consumer.pool.RpcConnectionFactory;
+import com.hzh.provider.registry.RegistryFactory;
 import com.hzh.provider.registry.RegistryService;
+import com.hzh.provider.registry.RegistryType;
 import com.hzh.rpc.codec.MiniRpcDecoder;
 import com.hzh.rpc.codec.MiniRpcEncoder;
-import com.hzh.rpc.common.MiniRpcRequest;
-import com.hzh.rpc.common.RpcServiceHelper;
-import com.hzh.rpc.common.ServiceMeta;
+import com.hzh.rpc.common.*;
 import com.hzh.rpc.handler.RpcResponseHandler;
+import com.hzh.rpc.heartbeat.HeartbeatRequest;
 import com.hzh.rpc.protocol.MiniRpcProtocol;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.util.concurrent.DefaultPromise;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+
+import static com.hzh.consumer.proxy.RpcInvokerProxy.createHeader;
+import static com.hzh.provider.registry.RegistryFactory.registryService;
+
 
 @Slf4j
 public class RpcConsumer implements AutoCloseable{
@@ -51,10 +54,13 @@ public class RpcConsumer implements AutoCloseable{
         return INSTANCE;
     }
 
-    public void sendRequest(MiniRpcProtocol<MiniRpcRequest> protocol, RegistryService registryService) throws Exception {
+    public void sendRequest(MiniRpcProtocol<?> protocol, RegistryService registryService) throws Exception {
+        if (protocol.getBody() instanceof HeartbeatRequest) {
+            sendHeartbeatRequest();
+            return;
+        }
         RpcConnection connection = null;
-
-        MiniRpcRequest request = protocol.getBody();
+        MiniRpcRequest request = (MiniRpcRequest) protocol.getBody();
         Object[] params = request.getParams();
         String serviceKey = RpcServiceHelper.buildServiceKey(request.getClassName(), request.getServiceVersion());
 
@@ -95,6 +101,7 @@ public class RpcConsumer implements AutoCloseable{
                 GenericObjectPoolConfig<RpcConnection> poolConfig = new GenericObjectPoolConfig<>();
                 poolConfig.setMaxTotal(50);
                 poolConfig.setMinIdle(10);
+//                poolConfig.setTestOnBorrow(true);  // 设置为true以在借用连接之前测试连接的有效性
                 connectionPool = new GenericObjectPool<>(new RpcConnectionFactory(bootstrap, serviceAddr, servicePort), poolConfig);
             }
         }
@@ -115,4 +122,26 @@ public class RpcConsumer implements AutoCloseable{
         }
         eventLoopGroup.shutdownGracefully();
     }
+
+
+    private void sendHeartbeat() throws Exception {
+        MiniRpcProtocol<HeartbeatRequest> heartbeatProtocol = new MiniRpcProtocol<>();
+        // ... 设置心跳请求的其他字段 ...
+        this.sendRequest(heartbeatProtocol, registryService);
+    }
+
+    public void sendHeartbeatRequest() throws Exception {
+        MiniRpcProtocol<HeartbeatRequest> heartbeatProtocol = createHeartbeatProtocol();
+        MiniRpcFuture<MiniRpcResponse> future = new MiniRpcFuture<>(new DefaultPromise<>(new DefaultEventLoop()), 3000);
+        MiniRpcRequestHolder.REQUEST_MAP.put(heartbeatProtocol.getHeader().getRequestId(), future);
+        this.sendRequest(heartbeatProtocol, registryService);
+    }
+
+    private MiniRpcProtocol<HeartbeatRequest> createHeartbeatProtocol() {
+        MiniRpcProtocol<HeartbeatRequest> protocol = new MiniRpcProtocol<>();
+        protocol.setHeader(createHeader()); // 使用相同的头部创建方法
+        protocol.setBody(new HeartbeatRequest()); // 创建一个新的心跳请求实例
+        return protocol;
+    }
+
 }
