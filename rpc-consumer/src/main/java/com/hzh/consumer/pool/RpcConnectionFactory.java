@@ -28,17 +28,20 @@ public class RpcConnectionFactory implements PooledObjectFactory<RpcConnection> 
     // ... 实现其他方法，如destroy、validate等 ...
     @Override
     public void activateObject(PooledObject<RpcConnection> pooledObject) throws Exception {
-
+        // 可以添加重新初始化连接的代码，如果需要的话，用户重新激活对象
     }
 
     @Override
     public void destroyObject(PooledObject<RpcConnection> pooledObject) throws Exception {
-
+        RpcConnection connection = pooledObject.getObject();
+        if (connection != null) {
+            connection.close(); // 假设RpcConnection有一个close方法来关闭连接
+        }
     }
 
     @Override
     public void destroyObject(PooledObject<RpcConnection> p, DestroyMode destroyMode) throws Exception {
-        PooledObjectFactory.super.destroyObject(p, destroyMode);
+        destroyObject(p); // 使用上面的destroyObject方法
     }
 
     //core
@@ -55,7 +58,9 @@ public class RpcConnectionFactory implements PooledObjectFactory<RpcConnection> 
 
     @Override
     public boolean validateObject(PooledObject<RpcConnection> pooledObject) {
-        return false;
+        RpcConnection connection = pooledObject.getObject();
+        // RpcConnection有一个isConnected方法来检查连接是否仍然有效
+        return connection != null && connection.isConnected();
     }
 }
 
