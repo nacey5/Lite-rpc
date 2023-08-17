@@ -9,5 +9,14 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 public class RpcConsumerApplication {
     public static void main(String[] args) {
         SpringApplication.run(RpcConsumerApplication.class, args);
+
+        // 添加关闭RpcConsumer的钩子
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                RpcConsumer.getInstance().close();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }));
     }
 }

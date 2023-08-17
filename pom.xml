@@ -37,6 +37,7 @@
         <lombok.version>1.18.28</lombok.version>
         <assist.version>3.27.0-GA</assist.version>
         <guava.version>30.1-jre</guava.version>
+        <commonPool2.version>2.11.1</commonPool2.version>
     </properties>
 
     <dependencyManagement>
@@ -169,6 +170,12 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-pool2</artifactId>
+                <version>${commonPool2.version}</version>
             </dependency>
 
         </dependencies>
