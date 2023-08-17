@@ -1,4 +1,4 @@
-package com.hzh.consumer;
+package com.hzh.consumer.enums;
 
 /**
  * @ClassName ProxyType

@@ -1,5 +1,6 @@
-package com.hzh.consumer;
+package com.hzh.consumer.config;
 
+import com.hzh.consumer.proxy.RpcReferenceBean;
 import com.hzh.consumer.annotation.RpcReference;
 import com.hzh.rpc.common.RpcConstants;
 import lombok.extern.slf4j.Slf4j;

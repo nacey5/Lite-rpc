@@ -1,4 +1,4 @@
-package com.hzh.consumer;
+package com.hzh.consumer.proxy;
 
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;

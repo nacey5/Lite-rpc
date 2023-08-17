@@ -1,6 +1,6 @@
 package com.hzh.consumer.controller;
 
-import com.hzh.consumer.ProxyType;
+import com.hzh.consumer.enums.ProxyType;
 import com.hzh.consumer.annotation.RpcReference;
 import com.hzh.provider.facade.HelloFacade;
 import org.springframework.web.bind.annotation.RequestMapping;

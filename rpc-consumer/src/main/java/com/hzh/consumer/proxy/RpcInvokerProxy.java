@@ -1,5 +1,6 @@
-package com.hzh.consumer;
+package com.hzh.consumer.proxy;
 
+import com.hzh.consumer.RpcConsumer;
 import com.hzh.provider.registry.RegistryService;
 import com.hzh.rpc.common.MiniRpcFuture;
 import com.hzh.rpc.common.MiniRpcRequest;
@@ -18,15 +19,19 @@ import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
 
 public class RpcInvokerProxy implements InvocationHandler {
+    public static final ThreadLocal<MiniRpcProtocol<MiniRpcRequest>> CURRENT_REQUEST = new ThreadLocal<>();
 
     private final String serviceVersion;
     private final long timeout;
     private final RegistryService registryService;
 
+    private final RpcConsumer rpcConsumer; // 添加RpcConsumer作为成员变量
+
     public RpcInvokerProxy(String serviceVersion, long timeout, RegistryService registryService) {
         this.serviceVersion = serviceVersion;
         this.timeout = timeout;
         this.registryService = registryService;
+        this.rpcConsumer = new RpcConsumer(); // 在构造函数中初始化RpcConsumer
     }
 
     @Override
@@ -41,6 +46,8 @@ public class RpcInvokerProxy implements InvocationHandler {
         header.setMsgType((byte) MsgType.REQUEST.getType());
         header.setStatus((byte) 0x1);
         protocol.setHeader(header);
+        //暂时先不引入这个ThreadLocal，因为consumer对象是复用的，关闭consumer再进行remove会导致内存泄漏
+//        CURRENT_REQUEST.set(protocol);
 
         MiniRpcRequest request = new MiniRpcRequest();
         request.setServiceVersion(this.serviceVersion);
@@ -50,14 +57,11 @@ public class RpcInvokerProxy implements InvocationHandler {
         request.setParams(args);
         protocol.setBody(request);
 
-        RpcConsumer rpcConsumer = new RpcConsumer();
         MiniRpcFuture<MiniRpcResponse> future = new MiniRpcFuture<>(new DefaultPromise<>(new DefaultEventLoop()), timeout);
         MiniRpcRequestHolder.REQUEST_MAP.put(requestId, future);
         rpcConsumer.sendRequest(protocol, this.registryService);
 
-        // TODO hold request by ThreadLocal
-
-
+        //hold request by ThreadLocal
         return future.getPromise().get(future.getTimeout(), TimeUnit.MILLISECONDS).getData();
     }
 }

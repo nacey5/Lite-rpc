@@ -1,5 +1,6 @@
-package com.hzh.consumer;
+package com.hzh.consumer.proxy;
 
+import com.hzh.consumer.enums.ProxyType;
 import com.hzh.provider.registry.RegistryFactory;
 import com.hzh.provider.registry.RegistryService;
 import com.hzh.provider.registry.RegistryType;
@@ -23,7 +24,7 @@ public class RpcReferenceBean implements FactoryBean<Object> {
 
     private Object object;
 
-    private ProxyType  proxyType = ProxyType.JDK; // 默认为JDK代理
+    private ProxyType proxyType = ProxyType.JDK; // 默认为JDK代理
 
     @Override
     public Object getObject() throws Exception {

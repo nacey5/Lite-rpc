@@ -1,6 +1,6 @@
 package com.hzh.consumer.annotation;
 
-import com.hzh.consumer.ProxyType;
+import com.hzh.consumer.enums.ProxyType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.annotation.ElementType;
