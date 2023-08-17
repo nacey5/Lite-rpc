@@ -2,9 +2,7 @@ package com.hzh.consumer;
 
 import com.hzh.consumer.pool.RpcConnection;
 import com.hzh.consumer.pool.RpcConnectionFactory;
-import com.hzh.provider.registry.RegistryFactory;
 import com.hzh.provider.registry.RegistryService;
-import com.hzh.provider.registry.RegistryType;
 import com.hzh.rpc.codec.MiniRpcDecoder;
 import com.hzh.rpc.codec.MiniRpcEncoder;
 import com.hzh.rpc.common.*;
@@ -21,6 +19,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import static com.hzh.consumer.proxy.RpcInvokerProxy.createHeader;
 import static com.hzh.provider.registry.RegistryFactory.registryService;
 
@@ -35,6 +37,10 @@ public class RpcConsumer implements AutoCloseable{
 
     private static final RpcConsumer INSTANCE = new RpcConsumer();
 
+    private ScheduledExecutorService heartbeatExecutor = Executors.newScheduledThreadPool(1);
+
+
+
     private  RpcConsumer() {
         bootstrap = new Bootstrap();
         eventLoopGroup = new NioEventLoopGroup(4);
@@ -48,6 +54,9 @@ public class RpcConsumer implements AutoCloseable{
                                 .addLast(new RpcResponseHandler());
                     }
                 });
+        //开启心跳
+        startHeartbeatTask();
+
     }
 
     public static RpcConsumer getInstance() {
@@ -125,16 +134,27 @@ public class RpcConsumer implements AutoCloseable{
 
 
     private void sendHeartbeat() throws Exception {
-        MiniRpcProtocol<HeartbeatRequest> heartbeatProtocol = new MiniRpcProtocol<>();
+        MiniRpcProtocol<HeartbeatRequest> heartbeatProtocol = createHeartbeatProtocol();
         // ... 设置心跳请求的其他字段 ...
         this.sendRequest(heartbeatProtocol, registryService);
     }
 
     public void sendHeartbeatRequest() throws Exception {
+        log.info("heartbeat...");
         MiniRpcProtocol<HeartbeatRequest> heartbeatProtocol = createHeartbeatProtocol();
         MiniRpcFuture<MiniRpcResponse> future = new MiniRpcFuture<>(new DefaultPromise<>(new DefaultEventLoop()), 3000);
-        MiniRpcRequestHolder.REQUEST_MAP.put(heartbeatProtocol.getHeader().getRequestId(), future);
-        this.sendRequest(heartbeatProtocol, registryService);
+        // 直接使用Netty的Channel发送心跳请求，而不是再次调用sendRequest方法
+        // 在这里我直接忽略了调用可能出现的异常-第一次调用的时候没有进行初始化必定为空，因为是心跳，非业务可以忽略错误，所以可以使用try catch
+        Channel channel=null;
+        try {
+            channel= connectionPool.borrowObject().connect().channel();
+        } catch (Exception ignoreFirst) {return;}
+        if (channel != null && channel.isActive()) {
+            channel.writeAndFlush(heartbeatProtocol);
+        } else {
+            // 如果Channel不可用，可以记录日志或执行其他操作
+            log.warn("Channel is not active, cannot send heartbeat");
+        }
     }
 
     private MiniRpcProtocol<HeartbeatRequest> createHeartbeatProtocol() {
@@ -143,5 +163,17 @@ public class RpcConsumer implements AutoCloseable{
         protocol.setBody(new HeartbeatRequest()); // 创建一个新的心跳请求实例
         return protocol;
     }
+
+    private void startHeartbeatTask() {
+        heartbeatExecutor.scheduleAtFixedRate(() -> {
+            try {
+                sendHeartbeat();
+            } catch (Exception e) {
+                log.error("Error sending heartbeat", e);
+            }
+        }, 0, 10, TimeUnit.SECONDS);  // 每10秒发送一次心跳
+    }
+
+
 
 }
