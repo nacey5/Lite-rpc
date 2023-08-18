@@ -18,15 +18,15 @@ import io.netty.util.concurrent.DefaultPromise;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
-
-import static com.hzh.provider.registry.RegistryFactory.registryService;
-
 public class RpcInvokerProxy implements InvocationHandler {
     public static final ThreadLocal<MiniRpcProtocol<MiniRpcRequest>> CURRENT_REQUEST = new ThreadLocal<>();
     private final String serviceVersion;
     private final long timeout;
     private final RegistryService registryService;
     private final RpcConsumer rpcConsumer; // 添加RpcConsumer作为成员变量
+
+    private static final int MAX_RETRIES = 3;// 定义重试次数的常数
+    private static final int RETRY_DELAY_MS = 1000; // 定义重试间隔时间的常数
 
     public RpcInvokerProxy(String serviceVersion, long timeout, RegistryService registryService) {
         this.serviceVersion = serviceVersion;
@@ -37,9 +37,22 @@ public class RpcInvokerProxy implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        MiniRpcProtocol<MiniRpcRequest> protocol = createProtocol(method, args);
-        MiniRpcFuture<MiniRpcResponse> future = sendRequest(protocol);
-        return future.getPromise().get(future.getTimeout(), TimeUnit.MILLISECONDS).getData();
+        int retryCount = 0;
+        while (true) {
+            try {
+                MiniRpcProtocol<MiniRpcRequest> protocol = createProtocol(method, args);
+                // TODO hold request by ThreadLocal
+                return sendRpcRequest(protocol);
+            } catch (Exception e) {
+                if (shouldRetry(e) && retryCount < MAX_RETRIES) {
+                    retryCount++;
+                    // 此处添加延迟
+                    Thread.sleep(RETRY_DELAY_MS * retryCount);
+                    continue;
+                }
+                throw e;  // 如果达到最大重试次数或异常不应该重试，抛出异常
+            }
+        }
     }
 
     private MiniRpcProtocol<MiniRpcRequest> createProtocol(Method method, Object[] args) {
@@ -72,11 +85,26 @@ public class RpcInvokerProxy implements InvocationHandler {
         return request;
     }
 
-    private MiniRpcFuture<MiniRpcResponse> sendRequest(MiniRpcProtocol<MiniRpcRequest> protocol) throws Exception {
+    private Object sendRpcRequest(MiniRpcProtocol<MiniRpcRequest> protocol) throws Exception {
         MiniRpcFuture<MiniRpcResponse> future = new MiniRpcFuture<>(new DefaultPromise<>(new DefaultEventLoop()), timeout);
         MiniRpcRequestHolder.REQUEST_MAP.put(protocol.getHeader().getRequestId(), future);
         rpcConsumer.sendRequest(protocol, this.registryService);
-        return future;
+        return future.getPromise().get(future.getTimeout(), TimeUnit.MILLISECONDS).getData();
+    }
+
+    private boolean shouldRetry(Exception e) {
+        // 如果是网络异常，重试
+        if (e instanceof java.net.SocketTimeoutException ||
+                e instanceof java.net.ConnectException) {
+            return true;
+        }
+        // 如果是业务异常，不重试
+        if (e instanceof RuntimeException) {
+            return false;
+        }
+        // 其他情况，可以根据实际需求判断
+        // ...
+        return false;  // 默认不重试
     }
 
 }
