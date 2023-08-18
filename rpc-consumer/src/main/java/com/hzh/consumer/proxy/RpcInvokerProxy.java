@@ -107,4 +107,25 @@ public class RpcInvokerProxy implements InvocationHandler {
         return false;  // 默认不重试
     }
 
+    public Object invokeGeneric(String serviceName, String methodName, Object[] args,Class[] paramTypes) throws Throwable {
+        MiniRpcProtocol<MiniRpcRequest> protocol = createGenericProtocol(serviceName, methodName, args,paramTypes);
+        return sendRpcRequest(protocol);
+    }
+
+    private MiniRpcProtocol<MiniRpcRequest> createGenericProtocol(String serviceName, String methodName, Object[] args,Class[] parameterTypes){
+        MiniRpcProtocol<MiniRpcRequest> protocol = new MiniRpcProtocol<>();
+        protocol.setHeader(createHeader());
+        MiniRpcRequest request = new MiniRpcRequest();
+        request.setServiceVersion(this.serviceVersion);
+        request.setClassName(serviceName);
+        request.setMethodName(methodName);
+        request.setParameterTypes(parameterTypes);
+        request.setParams(args);
+        protocol.setBody(request);
+        return protocol;
+    }
+
+
+
+
 }

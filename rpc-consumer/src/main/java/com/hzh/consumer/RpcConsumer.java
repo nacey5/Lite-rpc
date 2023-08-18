@@ -2,6 +2,7 @@ package com.hzh.consumer;
 
 import com.hzh.consumer.pool.RpcConnection;
 import com.hzh.consumer.pool.RpcConnectionFactory;
+import com.hzh.consumer.proxy.GenericInvokerProxy;
 import com.hzh.provider.registry.RegistryService;
 import com.hzh.rpc.codec.MiniRpcDecoder;
 import com.hzh.rpc.codec.MiniRpcEncoder;
@@ -28,7 +29,7 @@ import static com.hzh.provider.registry.RegistryFactory.registryService;
 
 
 @Slf4j
-public class RpcConsumer implements AutoCloseable{
+public class RpcConsumer implements AutoCloseable {
     private final Bootstrap bootstrap;
     private final EventLoopGroup eventLoopGroup;
 
@@ -40,8 +41,7 @@ public class RpcConsumer implements AutoCloseable{
     private ScheduledExecutorService heartbeatExecutor = Executors.newScheduledThreadPool(1);
 
 
-
-    private  RpcConsumer() {
+    private RpcConsumer() {
         bootstrap = new Bootstrap();
         eventLoopGroup = new NioEventLoopGroup(4);
         bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class)
@@ -142,13 +142,13 @@ public class RpcConsumer implements AutoCloseable{
     public void sendHeartbeatRequest() throws Exception {
         log.info("heartbeat...");
         MiniRpcProtocol<HeartbeatRequest> heartbeatProtocol = createHeartbeatProtocol();
-        MiniRpcFuture<MiniRpcResponse> future = new MiniRpcFuture<>(new DefaultPromise<>(new DefaultEventLoop()), 3000);
-        // 直接使用Netty的Channel发送心跳请求，而不是再次调用sendRequest方法
         // 在这里我直接忽略了调用可能出现的异常-第一次调用的时候没有进行初始化必定为空，因为是心跳，非业务可以忽略错误，所以可以使用try catch
-        Channel channel=null;
+        Channel channel = null;
         try {
-            channel= connectionPool.borrowObject().connect().channel();
-        } catch (Exception ignoreFirst) {return;}
+            channel = connectionPool.borrowObject().connect().channel();
+        } catch (Exception ignoreFirst) {
+            return;
+        }
         if (channel != null && channel.isActive()) {
             channel.writeAndFlush(heartbeatProtocol);
         } else {
@@ -174,6 +174,10 @@ public class RpcConsumer implements AutoCloseable{
         }, 0, 10, TimeUnit.SECONDS);  // 每10秒发送一次心跳
     }
 
+    public Object invokeGeneric(String serviceName, String methodName, String serviceVersion, long timeout,Class[] paramTypes, Object... args) throws Throwable {
+        GenericInvokerProxy genericInvoker = new GenericInvokerProxy(registryService);
+        return genericInvoker.invoke(serviceName, methodName, serviceVersion, timeout,paramTypes, args);
+    }
 
 
 }
