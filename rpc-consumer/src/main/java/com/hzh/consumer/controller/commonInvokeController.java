@@ -1,13 +1,11 @@
 package com.hzh.consumer.controller;
 
-import com.hzh.consumer.RpcConsumer;
-import com.hzh.provider.registry.RegistryFactory;
-import com.hzh.provider.registry.RegistryService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
+import com.hzh.consumer.RpcConsumer;
+import org.springframework.web.bind.annotation.*;
+
+import static com.hzh.rpc.transfer.ArgsTransfer.transferToObjects;
+import static com.hzh.rpc.transfer.ArgsTransfer.transferToTypes;
 
 /**
  * @ClassName commonInvokeController
@@ -21,14 +19,31 @@ import javax.annotation.Resource;
 public class commonInvokeController {
 
 
-    @GetMapping("/sayHello")
-    public String sayHello() throws Throwable {
+    @GetMapping("/sayHello/{serviceName}/{methodName}/{parameterTypeNames}")
+    public String sayHello(
+            @PathVariable String serviceName,
+            @PathVariable String methodName,
+            @PathVariable String parameterTypeNames,
+            @RequestBody String reqBody) throws Throwable {
         RpcConsumer consumer = RpcConsumer.getInstance();
         String serviceVersion = "1.0.0";  // 从配置或其他地方获取
         long timeout = 5000;  // 从配置或其他地方获取
+        Class<?>[] parameterTypes = transferToTypes(parameterTypeNames);
+        Object[] args = transferToObjects(reqBody, parameterTypes);
         // 使用泛化调用
-        String result = (String) consumer.invokeGeneric("com.hzh.provider.facade.HelloFacade", "hello", serviceVersion, timeout, new Class[]{String.class},"mini rpc");
+        String result = (String) consumer.invokeGeneric(
+                serviceName,
+                methodName,
+                serviceVersion,
+                timeout,
+                parameterTypes,
+                args);
         return result;
     }
+
+
+
+
+
 }
 
