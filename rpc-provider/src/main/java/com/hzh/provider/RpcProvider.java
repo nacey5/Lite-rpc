@@ -1,7 +1,10 @@
 package com.hzh.provider;
 
 import com.hzh.provider.annotation.RpcService;
+import com.hzh.provider.chain.ChainHandler;
+import com.hzh.provider.handler.RateLimiterHandler;
 import com.hzh.provider.registry.RegistryService;
+import com.hzh.provider.chain.HandlerChain;
 import com.hzh.rpc.codec.MiniRpcDecoder;
 import com.hzh.rpc.codec.MiniRpcEncoder;
 import com.hzh.rpc.common.RpcServiceHelper;
@@ -31,11 +34,20 @@ public class RpcProvider implements InitializingBean, BeanPostProcessor {
     private final int serverPort;
     private final RegistryService serviceRegistry;
 
+    private final HandlerChain handlerChain;
+
+
+
     private final Map<String, Object> rpcServiceMap = new HashMap<>();
 
     public RpcProvider(int serverPort, RegistryService serviceRegistry) {
         this.serverPort = serverPort;
         this.serviceRegistry = serviceRegistry;
+        // 初始化HandlerChain
+        this.handlerChain = new HandlerChain();
+        // 添加处理器到HandlerChain
+        this.handlerChain.
+                addHandler(new RateLimiterHandler(10.0));
     }
 
     @Override
@@ -64,6 +76,7 @@ public class RpcProvider implements InitializingBean, BeanPostProcessor {
                             socketChannel.pipeline()
                                     .addLast(new MiniRpcEncoder())
                                     .addLast(new MiniRpcDecoder())
+                                    .addLast(new ChainHandler(handlerChain))
                                     .addLast(new RpcRequestHandler(rpcServiceMap));
                         }
                     })

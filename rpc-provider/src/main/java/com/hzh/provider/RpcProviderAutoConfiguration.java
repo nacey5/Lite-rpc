@@ -17,6 +17,7 @@ public class RpcProviderAutoConfiguration {
     @Resource
     private RpcProperties rpcProperties;
 
+
     @Bean
     public RpcProvider init() throws Exception {
         RegistryType type = RegistryType.valueOf(rpcProperties.getRegistryType());
