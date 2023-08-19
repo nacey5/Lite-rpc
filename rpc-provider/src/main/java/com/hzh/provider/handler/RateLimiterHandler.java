@@ -1,7 +1,6 @@
 package com.hzh.provider.handler;
 
 import com.google.common.util.concurrent.RateLimiter;
-import com.hzh.provider.handler.RpcHandler;
 import com.hzh.rpc.common.MiniRpcRequest;
 import com.hzh.rpc.common.MiniRpcResponse;
 import io.netty.channel.ChannelHandler;
