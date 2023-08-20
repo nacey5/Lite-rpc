@@ -24,8 +24,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 
 import java.net.InetAddress;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class RpcProvider implements InitializingBean, BeanPostProcessor {
@@ -38,7 +38,7 @@ public class RpcProvider implements InitializingBean, BeanPostProcessor {
 
 
 
-    private final Map<String, Object> rpcServiceMap = new HashMap<>();
+    private final Map<String, Object> rpcServiceMap = new ConcurrentHashMap<>();
 
     public RpcProvider(int serverPort, RegistryService serviceRegistry) {
         this.serverPort = serverPort;
@@ -77,7 +77,7 @@ public class RpcProvider implements InitializingBean, BeanPostProcessor {
                                     .addLast(new MiniRpcEncoder())
                                     .addLast(new MiniRpcDecoder())
                                     .addLast(new ChainHandler(handlerChain))
-                                    .addLast(new RpcRequestHandler(rpcServiceMap));
+                                    .addLast(RpcRequestHandler.getInstance(rpcServiceMap));
                         }
                     })
                     .childOption(ChannelOption.SO_KEEPALIVE, true);

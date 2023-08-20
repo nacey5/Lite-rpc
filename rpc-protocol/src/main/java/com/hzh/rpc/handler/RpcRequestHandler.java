@@ -7,20 +7,35 @@ import com.hzh.rpc.protocol.MiniRpcProtocol;
 import com.hzh.rpc.protocol.MsgHeader;
 import com.hzh.rpc.protocol.MsgStatus;
 import com.hzh.rpc.protocol.MsgType;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cglib.reflect.FastClass;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
+@ChannelHandler.Sharable
 public class RpcRequestHandler extends SimpleChannelInboundHandler<MiniRpcProtocol<MiniRpcRequest>> {
 
-    private final Map<String, Object> rpcServiceMap;
+    private Map<String, Object> rpcServiceMap;
 
-    public RpcRequestHandler(Map<String, Object> rpcServiceMap) {
+    private final Map<Class<?>, FastClass> fastClassCache = new ConcurrentHashMap<>();
+
+    private static RpcRequestHandler instance;
+
+
+    private RpcRequestHandler(Map<String, Object> rpcServiceMap) {
         this.rpcServiceMap = rpcServiceMap;
+    }
+
+    public static synchronized RpcRequestHandler getInstance(Map<String, Object> rpcServiceMap) {
+        if (instance == null) {
+            instance = new RpcRequestHandler(rpcServiceMap);
+        }
+        return instance;
     }
 
     @Override
@@ -59,8 +74,12 @@ public class RpcRequestHandler extends SimpleChannelInboundHandler<MiniRpcProtoc
         Class<?>[] parameterTypes = request.getParameterTypes();
         Object[] parameters = request.getParams();
 
-        FastClass fastClass = FastClass.create(serviceClass);
+        FastClass fastClass = getFastClass(serviceClass);
         int methodIndex = fastClass.getIndex(methodName, parameterTypes);
         return fastClass.invoke(methodIndex, serviceBean, parameters);
+    }
+
+    private FastClass getFastClass(Class<?> serviceClass) {
+        return fastClassCache.computeIfAbsent(serviceClass, FastClass::create);
     }
 }
