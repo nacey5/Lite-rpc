@@ -1,5 +1,6 @@
 package com.hzh.rpc.proxy;
 
+import com.hzh.rpc.RpcContext;
 import com.hzh.rpc.common.*;
 import com.hzh.rpc.register.RegistryService;
 import com.hzh.rpc.protocol.MiniRpcProtocol;
@@ -36,6 +37,7 @@ public class RpcInvokerProxy implements InvocationHandler {
             try {
                 MiniRpcProtocol<MiniRpcRequest> protocol = createProtocol(method, args);
                 // TODO hold request by ThreadLocal
+                setContext(protocol);
                 return sendRpcRequest(protocol);
             } catch (Exception e) {
                 if (shouldRetry(e) && retryCount < MAX_RETRIES) {
@@ -47,6 +49,12 @@ public class RpcInvokerProxy implements InvocationHandler {
                 throw e;  // 如果达到最大重试次数或异常不应该重试，抛出异常
             }
         }
+    }
+
+    private static void setContext(MiniRpcProtocol<MiniRpcRequest> protocol) {
+        RpcContext context = RpcContext.getContext();
+        context.set("header", protocol.getHeader().getRequestId());
+        context.set("body", protocol.getBody());
     }
 
     private MiniRpcProtocol<MiniRpcRequest> createProtocol(Method method, Object[] args) {
