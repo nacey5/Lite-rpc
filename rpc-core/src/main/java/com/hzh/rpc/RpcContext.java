@@ -35,4 +35,7 @@ public class RpcContext implements Serializable {
     }
 
     // 可以添加其他常用的快捷方法，如getRequestId(), getAuthToken()等
+    public void setAll(RpcContext rpcContext) {
+        data.putAll(rpcContext.data);
+    }
 }

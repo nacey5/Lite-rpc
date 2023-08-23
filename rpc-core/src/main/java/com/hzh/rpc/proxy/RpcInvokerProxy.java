@@ -48,6 +48,9 @@ public class RpcInvokerProxy implements InvocationHandler {
                 }
                 throw e;  // 如果达到最大重试次数或异常不应该重试，抛出异常
             }
+            finally {
+                RpcContext.removeContext();
+            }
         }
     }
 
