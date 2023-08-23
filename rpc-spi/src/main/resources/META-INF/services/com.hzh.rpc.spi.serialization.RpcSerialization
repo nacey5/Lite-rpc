@@ -1,0 +1,2 @@
+com.hzh.rpc.defaultImpl.serialization.HessianSerialization
+com.hzh.rpc.defaultImpl.serialization.JsonSerialization

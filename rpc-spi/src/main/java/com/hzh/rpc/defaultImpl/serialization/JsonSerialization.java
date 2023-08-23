@@ -17,11 +17,13 @@
  * limitations under the License.
  */
 
-package com.hzh.rpc.serialization;
+package com.hzh.rpc.defaultImpl.serialization;
+
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hzh.rpc.spi.serialization.RpcSerialization;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -55,5 +57,10 @@ public class JsonSerialization implements RpcSerialization {
     @Override
     public <T> T deserialize(byte[] data, Class<T> clz) throws IOException {
         return MAPPER.readValue(Arrays.toString(data), clz);
+    }
+
+    @Override
+    public byte getType() {
+        return 0x20;
     }
 }

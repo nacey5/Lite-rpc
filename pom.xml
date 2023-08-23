@@ -16,6 +16,7 @@
         <module>rpc-test</module>
         <module>rpc-facade</module>
         <module>rpc-protocol</module>
+        <module>rpc-spi</module>
     </modules>
 
     <!-- Inherit defaults from Spring Boot -->

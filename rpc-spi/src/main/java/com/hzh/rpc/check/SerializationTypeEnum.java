@@ -1,4 +1,4 @@
-package com.hzh.rpc.serialization;
+package com.hzh.rpc.check;
 
 import lombok.Getter;
 

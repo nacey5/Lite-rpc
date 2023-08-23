@@ -37,12 +37,12 @@
    启动Provider。
    启动Consumer。
 
-架构图：
-![img_1.png](img_1.png)
-关系图
-![img_2.png](img_2.png)
-调用图
-![img_3.png](img_3.png)
+架构图：  
+  ![img_1.png](img_1.png)  
+关系图:  
+  ![img_2.png](img_2.png)  
+调用图:  
+![img_3.png](img_3.png)  
 
 
 目前已是实现功能:

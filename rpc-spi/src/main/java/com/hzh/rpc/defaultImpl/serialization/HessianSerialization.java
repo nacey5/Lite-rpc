@@ -1,15 +1,13 @@
-package com.hzh.rpc.serialization;
+package com.hzh.rpc.defaultImpl.serialization;
 
 import com.caucho.hessian.io.HessianSerializerInput;
 import com.caucho.hessian.io.HessianSerializerOutput;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import com.hzh.rpc.exception.SerializationException;
+import com.hzh.rpc.spi.serialization.RpcSerialization;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
-@Component
-@Slf4j
 public class HessianSerialization implements RpcSerialization {
 
     @Override
@@ -48,5 +46,10 @@ public class HessianSerialization implements RpcSerialization {
         }
 
         return result;
+    }
+
+    @Override
+    public byte getType() {
+        return 0x10;
     }
 }
