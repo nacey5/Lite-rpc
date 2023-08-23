@@ -2,6 +2,7 @@ package com.hzh.provider.registry;
 
 
 import com.hzh.rpc.common.ServiceMeta;
+import com.hzh.rpc.register.RegistryService;
 
 
 /**

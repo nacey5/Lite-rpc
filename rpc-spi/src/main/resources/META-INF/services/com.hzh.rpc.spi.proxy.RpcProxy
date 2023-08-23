@@ -1,0 +1,2 @@
+com.hzh.rpc.defaultImpl.proxy.JavassistProxy
+com.hzh.rpc.defaultImpl.proxy.JDKProxy

@@ -1,13 +1,7 @@
-package com.hzh.consumer.proxy;
+package com.hzh.rpc.proxy;
 
-import com.hzh.consumer.RpcConsumer;
-import com.hzh.provider.registry.RegistryService;
-import com.hzh.rpc.check.SerializationTypeEnum;
-import com.hzh.rpc.common.MiniRpcFuture;
-import com.hzh.rpc.common.MiniRpcRequest;
-import com.hzh.rpc.common.MiniRpcRequestHolder;
-import com.hzh.rpc.common.MiniRpcResponse;
-import com.hzh.rpc.heartbeat.HeartbeatRequest;
+import com.hzh.rpc.common.*;
+import com.hzh.rpc.register.RegistryService;
 import com.hzh.rpc.protocol.MiniRpcProtocol;
 import com.hzh.rpc.protocol.MsgHeader;
 import com.hzh.rpc.protocol.MsgType;
@@ -28,11 +22,11 @@ public class RpcInvokerProxy implements InvocationHandler {
     private static final int MAX_RETRIES = 3;// 定义重试次数的常数
     private static final int RETRY_DELAY_MS = 1000; // 定义重试间隔时间的常数
 
-    public RpcInvokerProxy(String serviceVersion, long timeout, RegistryService registryService) {
+    public RpcInvokerProxy(String serviceVersion, long timeout, RegistryService registryService,RpcConsumer rpcConsumer) {
         this.serviceVersion = serviceVersion;
         this.timeout = timeout;
         this.registryService = registryService;
-        this.rpcConsumer = RpcConsumer.getInstance(); // 在构造函数中初始化RpcConsumer
+        this.rpcConsumer = rpcConsumer; // 在构造函数中初始化RpcConsumer
     }
 
     @Override
@@ -69,7 +63,7 @@ public class RpcInvokerProxy implements InvocationHandler {
         header.setMagic(ProtocolConstants.MAGIC);
         header.setVersion(ProtocolConstants.VERSION);
         header.setRequestId(MiniRpcRequestHolder.REQUEST_ID_GEN.incrementAndGet());
-        header.setSerialization((byte) SerializationTypeEnum.HESSIAN.getType());
+        header.setSerialization((byte) 0x10);
         header.setMsgType((byte) MsgType.REQUEST.getType());
         header.setStatus((byte) 0x1);
         return header;

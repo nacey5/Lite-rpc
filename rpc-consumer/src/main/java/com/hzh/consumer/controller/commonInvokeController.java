@@ -1,7 +1,9 @@
 package com.hzh.consumer.controller;
 
 
-import com.hzh.consumer.RpcConsumer;
+import com.hzh.consumer.RpcConsumerFactory;
+import com.hzh.consumer.RpcConsumerImpl;
+import com.hzh.rpc.common.RpcConsumer;
 import org.springframework.web.bind.annotation.*;
 
 import static com.hzh.rpc.transfer.ArgsTransfer.transferToObjects;
@@ -25,7 +27,7 @@ public class commonInvokeController {
             @PathVariable String methodName,
             @PathVariable String parameterTypeNames,
             @RequestBody String reqBody) throws Throwable {
-        RpcConsumer consumer = RpcConsumer.getInstance();
+        RpcConsumer consumer = RpcConsumerFactory.getInstance();
         String serviceVersion = "1.0.0";  // 从配置或其他地方获取
         long timeout = 5000;  // 从配置或其他地方获取
         Class<?>[] parameterTypes = transferToTypes(parameterTypeNames);

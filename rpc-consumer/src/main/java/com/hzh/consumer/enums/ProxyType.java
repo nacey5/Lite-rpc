@@ -8,5 +8,10 @@ package com.hzh.consumer.enums;
  * @Version 0.0.1
  **/
 public enum ProxyType {
-    JDK, JAVASSIST
+    JDK, JAVASSIST;
+
+
+    public String getName() {
+        return this.name();
+    }
 }

@@ -4,6 +4,7 @@ import com.hzh.provider.registry.loadbalancer.HashStrategy;
 import com.hzh.provider.registry.loadbalancer.ZKConsistentHashLoadBalancer;
 import com.hzh.rpc.common.RpcServiceHelper;
 import com.hzh.rpc.common.ServiceMeta;
+import com.hzh.rpc.register.RegistryService;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;

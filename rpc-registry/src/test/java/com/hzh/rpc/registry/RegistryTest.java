@@ -1,7 +1,7 @@
 package com.hzh.rpc.registry;
 
 import com.hzh.provider.registry.RegistryFactory;
-import com.hzh.provider.registry.RegistryService;
+import com.hzh.rpc.register.RegistryService;
 import com.hzh.provider.registry.RegistryType;
 import com.hzh.rpc.common.ServiceMeta;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.hzh.provider.registry;
+package com.hzh.rpc.register;
 
 
 

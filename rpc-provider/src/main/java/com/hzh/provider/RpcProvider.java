@@ -3,7 +3,7 @@ package com.hzh.provider;
 import com.hzh.provider.annotation.RpcService;
 import com.hzh.provider.chain.ChainHandler;
 import com.hzh.provider.handler.RateLimiterHandler;
-import com.hzh.provider.registry.RegistryService;
+import com.hzh.rpc.register.RegistryService;
 import com.hzh.provider.chain.HandlerChain;
 import com.hzh.rpc.codec.MiniRpcDecoder;
 import com.hzh.rpc.codec.MiniRpcEncoder;

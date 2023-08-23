@@ -3,7 +3,7 @@ package com.hzh.consumer;
 import com.hzh.consumer.pool.RpcConnection;
 import com.hzh.consumer.pool.RpcConnectionFactory;
 import com.hzh.consumer.proxy.GenericInvokerProxy;
-import com.hzh.provider.registry.RegistryService;
+import com.hzh.rpc.register.RegistryService;
 import com.hzh.rpc.codec.MiniRpcDecoder;
 import com.hzh.rpc.codec.MiniRpcEncoder;
 import com.hzh.rpc.common.*;
@@ -15,7 +15,6 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.concurrent.DefaultPromise;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -24,24 +23,24 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static com.hzh.consumer.proxy.RpcInvokerProxy.createHeader;
+import static com.hzh.rpc.proxy.RpcInvokerProxy.createHeader;
 import static com.hzh.provider.registry.RegistryFactory.registryService;
 
 
 @Slf4j
-public class RpcConsumer implements AutoCloseable {
+public class RpcConsumerImpl implements RpcConsumer,AutoCloseable {
     private final Bootstrap bootstrap;
     private final EventLoopGroup eventLoopGroup;
 
     private GenericObjectPool<RpcConnection> connectionPool;
     private final Object poolLock = new Object();
 
-    private static final RpcConsumer INSTANCE = new RpcConsumer();
+    private static final RpcConsumerImpl INSTANCE = new RpcConsumerImpl();
 
     private ScheduledExecutorService heartbeatExecutor = Executors.newScheduledThreadPool(1);
 
 
-    private RpcConsumer() {
+    private RpcConsumerImpl() {
         bootstrap = new Bootstrap();
         eventLoopGroup = new NioEventLoopGroup(4);
         bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class)

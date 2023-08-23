@@ -1,7 +1,9 @@
 package com.hzh.consumer.proxy;
 
-import com.hzh.consumer.RpcConsumer;
-import com.hzh.provider.registry.RegistryService;
+import com.hzh.consumer.RpcConsumerFactory;
+import com.hzh.rpc.common.RpcConsumer;
+import com.hzh.rpc.proxy.RpcInvokerProxy;
+import com.hzh.rpc.register.RegistryService;
 
 /**
  * @ClassName GenericInvokerProxy
@@ -13,15 +15,13 @@ import com.hzh.provider.registry.RegistryService;
 public class GenericInvokerProxy {
 
     private final RegistryService registryService;
-    private final RpcConsumer rpcConsumer;
 
     public GenericInvokerProxy(RegistryService registryService) {
         this.registryService = registryService;
-        this.rpcConsumer = RpcConsumer.getInstance();
     }
 
     public Object invoke(String serviceName, String methodName, String serviceVersion, long timeout,Class[] paramTypes, Object... args) throws Throwable {
-        RpcInvokerProxy invoker = new RpcInvokerProxy(serviceVersion, timeout, registryService);
+        RpcInvokerProxy invoker = new RpcInvokerProxy(serviceVersion, timeout, registryService,RpcConsumerFactory.getInstance());
         return invoker.invokeGeneric(serviceName, methodName, args,paramTypes);
     }
 }

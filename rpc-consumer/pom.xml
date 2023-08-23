@@ -41,6 +41,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.hzh</groupId>
+            <artifactId>rpc-spi</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
         </dependency>

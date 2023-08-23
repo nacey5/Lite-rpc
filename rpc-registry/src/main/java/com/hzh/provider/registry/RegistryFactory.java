@@ -1,5 +1,7 @@
 package com.hzh.provider.registry;
 
+import com.hzh.rpc.register.RegistryService;
+
 public class RegistryFactory {
 
     public static volatile RegistryService registryService;
