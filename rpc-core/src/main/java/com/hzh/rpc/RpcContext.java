@@ -1,5 +1,6 @@
 package com.hzh.rpc;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,7 +11,7 @@ import java.util.Map;
  * @Date 2023/8/24 0:22
  * @Version 0.0.1
  **/
-public class RpcContext {
+public class RpcContext implements Serializable {
     private static final ThreadLocal<RpcContext> CONTEXT = ThreadLocal.withInitial(RpcContext::new);
 
     private final Map<String, Object> data = new HashMap<>();

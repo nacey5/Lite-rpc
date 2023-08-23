@@ -1,5 +1,6 @@
 package com.hzh.rpc.common;
 
+import com.hzh.rpc.RpcContext;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -11,4 +12,5 @@ public class MiniRpcRequest implements Serializable {
     private String methodName;
     private Object[] params;
     private Class<?>[] parameterTypes;
+    private RpcContext rpcContext;
 }

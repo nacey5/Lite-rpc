@@ -84,6 +84,7 @@ public class RpcInvokerProxy implements InvocationHandler {
         request.setMethodName(method.getName());
         request.setParameterTypes(method.getParameterTypes());
         request.setParams(args);
+        request.setRpcContext(RpcContext.getContext());
         return request;
     }
 
@@ -123,6 +124,7 @@ public class RpcInvokerProxy implements InvocationHandler {
         request.setMethodName(methodName);
         request.setParameterTypes(parameterTypes);
         request.setParams(args);
+        request.setRpcContext(RpcContext.getContext());
         protocol.setBody(request);
         return protocol;
     }
