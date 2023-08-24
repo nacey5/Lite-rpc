@@ -2,7 +2,6 @@ package com.hzh.consumer.controller;
 
 
 import com.hzh.consumer.RpcConsumerFactory;
-import com.hzh.consumer.RpcConsumerImpl;
 import com.hzh.rpc.common.RpcConsumer;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +17,7 @@ import static com.hzh.rpc.transfer.ArgsTransfer.transferToTypes;
  **/
 
 @RestController
-public class commonInvokeController {
+public class CommonInvokeController {
 
 
     @GetMapping("/sayHello/{serviceName}/{methodName}/{parameterTypeNames}")

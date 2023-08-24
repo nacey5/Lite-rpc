@@ -3,6 +3,8 @@ package com.hzh.consumer.config;
 import com.hzh.consumer.proxy.RpcReferenceBean;
 import com.hzh.consumer.annotation.RpcReference;
 import com.hzh.rpc.common.RpcConstants;
+import com.hzh.rpc.local.annotations.RpcMock;
+import com.hzh.rpc.local.annotations.RpcStub;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
@@ -50,6 +52,8 @@ public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanCl
             if (beanClassName != null) {
                 Class<?> clazz = ClassUtils.resolveClassName(beanClassName, this.classLoader);
                 ReflectionUtils.doWithFields(clazz, this::parseRpcReference);
+                //本地存根似乎这种方案不太好，因为这样会导致本地存根的beanDefinition被注册到spring容器中，而本地存根的beanDefinition是不需要注册到spring容器中的
+//                ReflectionUtils.doWithFields(clazz, this::parseLocalAnnotations);
             }
         }
 
@@ -77,6 +81,26 @@ public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanCl
 
             BeanDefinition beanDefinition = builder.getBeanDefinition();
             rpcRefBeanDefinitions.put(field.getName(), beanDefinition);
+        }
+    }
+
+
+    @Deprecated
+    private void parseLocalAnnotations(Field field){
+        RpcMock mockAnnotation = AnnotationUtils.getAnnotation(field, RpcMock.class);
+        if (mockAnnotation != null) {
+            // 创建并注册 @RpcMock 对应的bean定义
+            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(mockAnnotation.value());
+            BeanDefinition beanDefinition = builder.getBeanDefinition();
+            rpcRefBeanDefinitions.put(field.getName() + "Mock", beanDefinition);
+        }
+
+        RpcStub stubAnnotation = AnnotationUtils.getAnnotation(field, RpcStub.class);
+        if (stubAnnotation != null) {
+            // 创建并注册 @RpcStub 对应的bean定义
+            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(stubAnnotation.value());
+            BeanDefinition beanDefinition = builder.getBeanDefinition();
+            rpcRefBeanDefinitions.put(field.getName() + "Stub", beanDefinition);
         }
     }
 
