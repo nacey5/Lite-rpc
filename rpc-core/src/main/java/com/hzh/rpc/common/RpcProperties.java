@@ -13,4 +13,6 @@ public class RpcProperties {
 
     private String registryType;
 
+    private String directAddress;
+
 }

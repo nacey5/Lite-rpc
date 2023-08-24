@@ -23,4 +23,6 @@ public @interface RpcReference {
 
     ProxyType proxyType() default ProxyType.JDK; // 默认为JDK代理
 
+    String directAddress() default ""; // 默认为空，表示不使用直连
+
 }

@@ -28,7 +28,7 @@ import static com.hzh.provider.registry.RegistryFactory.registryService;
 
 
 @Slf4j
-public class RpcConsumerImpl implements RpcConsumer,AutoCloseable {
+public class RpcConsumerImpl implements RpcConsumer, AutoCloseable {
     private final Bootstrap bootstrap;
     private final EventLoopGroup eventLoopGroup;
 
@@ -38,6 +38,8 @@ public class RpcConsumerImpl implements RpcConsumer,AutoCloseable {
     private static final RpcConsumerImpl INSTANCE = new RpcConsumerImpl();
 
     private ScheduledExecutorService heartbeatExecutor = Executors.newScheduledThreadPool(1);
+
+    private String directAddress;
 
 
     private RpcConsumerImpl() {
@@ -74,7 +76,23 @@ public class RpcConsumerImpl implements RpcConsumer,AutoCloseable {
 
         int invokerHashCode = params.length > 0 ? params[0].hashCode() : serviceKey.hashCode();
         try {
-            ServiceMeta serviceMetadata = registryService.discovery(serviceKey, invokerHashCode);
+            ServiceMeta serviceMetadata;
+            //直连和注册中心的区别
+            if (this.directAddress != null && !this.directAddress.isEmpty()) {
+                // 使用直连地址
+                String[] parts = this.directAddress.split(":");
+                if (parts.length != 2) {
+                    throw new IllegalArgumentException("Invalid directAddress format. Expected format: host:port");
+                }
+                serviceMetadata = new ServiceMeta();
+                serviceMetadata.setServiceAddr(parts[0]);
+                serviceMetadata.setServicePort(Integer.parseInt(parts[1]));
+                // 设置serviceName和serviceVersion
+                serviceMetadata.setServiceName(request.getClassName()); // 服务名称
+                serviceMetadata.setServiceVersion(request.getServiceVersion());
+            } else {
+                serviceMetadata = registryService.discovery(serviceKey, invokerHashCode);
+            }
             if (serviceMetadata != null) {
 //            ChannelFuture future = bootstrap.connect(serviceMetadata.getServiceAddr(), serviceMetadata.getServicePort()).sync();
                 log.info("connect rpc server {} on port {} success.", serviceMetadata.getServiceAddr(), serviceMetadata.getServicePort());
@@ -173,9 +191,24 @@ public class RpcConsumerImpl implements RpcConsumer,AutoCloseable {
         }, 0, 10, TimeUnit.SECONDS);  // 每10秒发送一次心跳
     }
 
-    public Object invokeGeneric(String serviceName, String methodName, String serviceVersion, long timeout,Class[] paramTypes, Object... args) throws Throwable {
+    public Object invokeGeneric(String serviceName, String methodName, String serviceVersion, long timeout, Class[] paramTypes, Object... args) throws Throwable {
         GenericInvokerProxy genericInvoker = new GenericInvokerProxy(registryService);
-        return genericInvoker.invoke(serviceName, methodName, serviceVersion, timeout,paramTypes, args);
+        return genericInvoker.invoke(serviceName, methodName, serviceVersion, timeout, paramTypes, args);
+    }
+
+    @Override
+    public ChannelFuture tryConnect() throws InterruptedException {
+        String[] parts = this.directAddress.split(":");
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("Invalid directAddress format. Expected format: host:port");
+        }
+        String host = parts[0];
+        int port = Integer.parseInt(parts[1]);
+        return bootstrap.connect(host, port).sync();
+    }
+
+    public void setDirectAddress(String directAddress) {
+        this.directAddress = directAddress;
     }
 
 

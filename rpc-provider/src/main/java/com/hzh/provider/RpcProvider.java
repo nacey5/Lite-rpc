@@ -3,6 +3,7 @@ package com.hzh.provider;
 import com.hzh.provider.annotation.RpcService;
 import com.hzh.provider.chain.ChainHandler;
 import com.hzh.provider.handler.RateLimiterHandler;
+import com.hzh.rpc.common.RpcProperties;
 import com.hzh.rpc.register.RegistryService;
 import com.hzh.provider.chain.HandlerChain;
 import com.hzh.rpc.codec.MiniRpcDecoder;
@@ -36,11 +37,11 @@ public class RpcProvider implements InitializingBean, BeanPostProcessor {
 
     private final HandlerChain handlerChain;
 
-
+    private final RpcProperties rpcProperties;
 
     private final Map<String, Object> rpcServiceMap = new ConcurrentHashMap<>();
 
-    public RpcProvider(int serverPort, RegistryService serviceRegistry) {
+    public RpcProvider(int serverPort, RegistryService serviceRegistry, RpcProperties rpcProperties) {
         this.serverPort = serverPort;
         this.serviceRegistry = serviceRegistry;
         // 初始化HandlerChain
@@ -48,6 +49,8 @@ public class RpcProvider implements InitializingBean, BeanPostProcessor {
         // 添加处理器到HandlerChain
         this.handlerChain.
                 addHandler(new RateLimiterHandler(100L, 10L));
+        // 初始化RpcProperties
+        this.rpcProperties = rpcProperties;
     }
 
     @Override
@@ -63,28 +66,57 @@ public class RpcProvider implements InitializingBean, BeanPostProcessor {
 
     private void startRpcServer() throws Exception {
         this.serverAddress = InetAddress.getLocalHost().getHostAddress();
-
         EventLoopGroup boss = new NioEventLoopGroup();
         EventLoopGroup worker = new NioEventLoopGroup();
-        try {
-            ServerBootstrap bootstrap = new ServerBootstrap();
-            bootstrap.group(boss, worker)
-                    .channel(NioServerSocketChannel.class)
-                    .childHandler(new ChannelInitializer<SocketChannel>() {
-                        @Override
-                        protected void initChannel(SocketChannel socketChannel) throws Exception {
-                            socketChannel.pipeline()
-                                    .addLast(new MiniRpcEncoder())
-                                    .addLast(new MiniRpcDecoder())
-                                    .addLast(new ChainHandler(handlerChain))
-                                    .addLast(RpcRequestHandler.getInstance(rpcServiceMap));
-                        }
-                    })
-                    .childOption(ChannelOption.SO_KEEPALIVE, true);
 
-            ChannelFuture channelFuture = bootstrap.bind(this.serverAddress, this.serverPort).sync();
-            log.info("server addr {} started on port {}", this.serverAddress, this.serverPort);
-            channelFuture.channel().closeFuture().sync();
+
+        try {
+            // 启动直连服务
+            if (rpcProperties.getDirectAddress() != null && !rpcProperties.getDirectAddress().isEmpty()) {
+                String[] parts = rpcProperties.getDirectAddress().split(":");
+                if (parts.length != 2) {
+                    throw new IllegalArgumentException("Invalid directAddress format. Expected format: host:port");
+                }
+                String directHost = parts[0];
+                int directPort = Integer.parseInt(parts[1]);
+                ServerBootstrap directBootstrap = new ServerBootstrap();
+                directBootstrap.group(boss, worker)
+                        .channel(NioServerSocketChannel.class)
+                        .childHandler(new ChannelInitializer<SocketChannel>() {
+                            @Override
+                            protected void initChannel(SocketChannel socketChannel) throws Exception {
+                                socketChannel.pipeline()
+                                        .addLast(new MiniRpcEncoder())
+                                        .addLast(new MiniRpcDecoder())
+                                        .addLast(new ChainHandler(handlerChain))
+                                        .addLast(RpcRequestHandler.getInstance(rpcServiceMap));
+                            }
+                        })
+                        .childOption(ChannelOption.SO_KEEPALIVE, true);
+                ChannelFuture directChannelFuture = directBootstrap.bind(directHost, directPort).sync();
+                log.info("Direct server addr {} started on port {}", directHost, directPort);
+                directChannelFuture.channel().closeFuture().sync();
+            } else {
+                ServerBootstrap bootstrap = new ServerBootstrap();
+                bootstrap.group(boss, worker)
+                        .channel(NioServerSocketChannel.class)
+                        .childHandler(new ChannelInitializer<SocketChannel>() {
+                            @Override
+                            protected void initChannel(SocketChannel socketChannel) throws Exception {
+                                socketChannel.pipeline()
+                                        .addLast(new MiniRpcEncoder())
+                                        .addLast(new MiniRpcDecoder())
+                                        .addLast(new ChainHandler(handlerChain))
+                                        .addLast(RpcRequestHandler.getInstance(rpcServiceMap));
+                            }
+                        })
+                        .childOption(ChannelOption.SO_KEEPALIVE, true);
+
+                ChannelFuture channelFuture = bootstrap.bind(this.serverAddress, this.serverPort).sync();
+                log.info("server addr {} started on port {}", this.serverAddress, this.serverPort);
+                channelFuture.channel().closeFuture().sync();
+            }
+
         } finally {
             boss.shutdownGracefully();
             worker.shutdownGracefully();
@@ -107,6 +139,7 @@ public class RpcProvider implements InitializingBean, BeanPostProcessor {
 
                 serviceRegistry.register(serviceMeta);
                 rpcServiceMap.put(RpcServiceHelper.buildServiceKey(serviceMeta.getServiceName(), serviceMeta.getServiceVersion()), bean);
+
             } catch (Exception e) {
                 log.error("failed to register service {}#{}", serviceName, serviceVersion, e);
             }
