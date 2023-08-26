@@ -1,5 +1,6 @@
 package com.hzh.consumer.circuitbreaker;
 
+import com.hzh.consumer.enums.CircuitBreakerState;
 import com.hzh.rpc.circuitbreaker.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,11 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class SimpleCircuitBreaker implements CircuitBreaker {
-    private enum State {
-        CLOSED, OPEN, HALF_OPEN
-    }
 
-    private State state;
+    private CircuitBreakerState state;
     private int failureThreshold;
     private int halfOpenInterval;
     private long maxTimeout;
@@ -25,7 +23,7 @@ public class SimpleCircuitBreaker implements CircuitBreaker {
     private int consecutiveFailures;
 
     public SimpleCircuitBreaker(int failureThreshold, int halfOpenInterval, long maxTimeout) {
-        this.state = State.CLOSED;
+        this.state = CircuitBreakerState.CLOSED;
         this.failureThreshold = failureThreshold;
         this.halfOpenInterval = halfOpenInterval;
         this.maxTimeout = maxTimeout;
@@ -39,7 +37,7 @@ public class SimpleCircuitBreaker implements CircuitBreaker {
                 return true;
             case OPEN:
                 if ((System.currentTimeMillis() - lastOpenedTime) >= halfOpenInterval) {
-                    state = State.HALF_OPEN;
+                    state = CircuitBreakerState.HALF_OPEN;
                     return true;
                 }
                 return false;
@@ -54,14 +52,14 @@ public class SimpleCircuitBreaker implements CircuitBreaker {
         consecutiveFailures++;
         log.warn("recordFailure: " + consecutiveFailures);
         if (consecutiveFailures >= failureThreshold) {
-            state = State.OPEN;
+            state = CircuitBreakerState.OPEN;
             lastOpenedTime = System.currentTimeMillis();
         }
     }
 
     public synchronized void recordSuccess() {
-        if (state == State.HALF_OPEN) {
-            state = State.CLOSED;
+        if (state == CircuitBreakerState.HALF_OPEN) {
+            state = CircuitBreakerState.CLOSED;
             consecutiveFailures = 0;
         }
         if (consecutiveFailures > 0) {

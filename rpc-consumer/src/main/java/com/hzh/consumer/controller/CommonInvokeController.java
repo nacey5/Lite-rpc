@@ -1,8 +1,7 @@
 package com.hzh.consumer.controller;
 
 
-import com.hzh.consumer.RpcConsumerFactory;
-import com.hzh.consumer.circuitbreaker.SimpleCircuitBreaker;
+import com.hzh.consumer.factory.RpcConsumerFactory;
 import com.hzh.consumer.factory.CircuitBreakerFactory;
 import com.hzh.rpc.circuitbreaker.CircuitBreaker;
 import com.hzh.rpc.common.RpcConsumer;

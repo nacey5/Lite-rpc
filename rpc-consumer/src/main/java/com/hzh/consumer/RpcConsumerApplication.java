@@ -1,6 +1,7 @@
 package com.hzh.consumer;
 
-import com.hzh.rpc.common.RpcConsumer;
+import com.hzh.consumer.factory.RpcConsumerFactory;
+import com.hzh.consumer.hook.RpcConsumerHook;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -10,14 +11,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 public class RpcConsumerApplication {
     public static void main(String[] args) {
         SpringApplication.run(RpcConsumerApplication.class, args);
-
         // 添加关闭RpcConsumer的钩子
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                ((RpcConsumerImpl)RpcConsumerFactory.getInstance()).close();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }));
+        //todo 后面将优化一个hook队列，直接加入队列hook进行关闭
+        RpcConsumerHook.shutdownHook();
     }
 }

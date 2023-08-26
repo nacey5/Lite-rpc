@@ -29,16 +29,13 @@ import java.util.Map;
 public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanClassLoaderAware, BeanFactoryPostProcessor {
 
     private ApplicationContext context;
-
     private ClassLoader classLoader;
-
     private final Map<String, BeanDefinition> rpcRefBeanDefinitions = new LinkedHashMap<>();
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.context = applicationContext;
     }
-
     @Override
     public void setBeanClassLoader(ClassLoader classLoader) {
         this.classLoader = classLoader;
@@ -51,21 +48,12 @@ public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanCl
             String beanClassName = beanDefinition.getBeanClassName();
             if (beanClassName != null) {
                 Class<?> clazz = ClassUtils.resolveClassName(beanClassName, this.classLoader);
-                ReflectionUtils.doWithFields(clazz, this::parseRpcReference);
-                //本地存根似乎这种方案不太好，因为这样会导致本地存根的beanDefinition被注册到spring容器中，而本地存根的beanDefinition是不需要注册到spring容器中的
-//                ReflectionUtils.doWithFields(clazz, this::parseLocalAnnotations);
+                processFields(clazz);
             }
         }
-
-        BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
-        this.rpcRefBeanDefinitions.forEach((beanName, beanDefinition) -> {
-            if (context.containsBean(beanName)) {
-                throw new IllegalArgumentException("spring context already has a bean named " + beanName);
-            }
-            registry.registerBeanDefinition(beanName, rpcRefBeanDefinitions.get(beanName));
-            log.info("registered RpcReferenceBean {} success.", beanName);
-        });
+        registerBeans((BeanDefinitionRegistry) beanFactory);
     }
+
 
     private void parseRpcReference(Field field) {
         RpcReference annotation = AnnotationUtils.getAnnotation(field, RpcReference.class);
@@ -84,9 +72,13 @@ public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanCl
         }
     }
 
-
+    /**
+     * 这部分不算过期，但是本地存根功能目前暂未完成，代码暂留
+     *
+     * @param field
+     */
     @Deprecated
-    private void parseLocalAnnotations(Field field){
+    private void parseLocalAnnotations(Field field) {
         RpcMock mockAnnotation = AnnotationUtils.getAnnotation(field, RpcMock.class);
         if (mockAnnotation != null) {
             // 创建并注册 @RpcMock 对应的bean定义
@@ -102,6 +94,23 @@ public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanCl
             BeanDefinition beanDefinition = builder.getBeanDefinition();
             rpcRefBeanDefinitions.put(field.getName() + "Stub", beanDefinition);
         }
+    }
+
+    private void registerBeans(BeanDefinitionRegistry beanFactory) {
+        BeanDefinitionRegistry registry = beanFactory;
+        this.rpcRefBeanDefinitions.forEach((beanName, beanDefinition) -> {
+            if (context.containsBean(beanName)) {
+                throw new IllegalArgumentException("spring context already has a bean named " + beanName);
+            }
+            registry.registerBeanDefinition(beanName, rpcRefBeanDefinitions.get(beanName));
+            log.info("registered RpcReferenceBean {} success.", beanName);
+        });
+    }
+
+    private void processFields(Class<?> clazz) {
+        ReflectionUtils.doWithFields(clazz, this::parseRpcReference);
+        //本地存根似乎这种方案不太好，因为这样会导致本地存根的beanDefinition被注册到spring容器中，而本地存根的beanDefinition是不需要注册到spring容器中的
+//                ReflectionUtils.doWithFields(clazz, this::parseLocalAnnotations);
     }
 
 }

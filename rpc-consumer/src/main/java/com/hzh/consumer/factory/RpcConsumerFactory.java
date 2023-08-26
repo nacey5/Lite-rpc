@@ -1,5 +1,6 @@
-package com.hzh.consumer;
+package com.hzh.consumer.factory;
 
+import com.hzh.consumer.RpcConsumerImpl;
 import com.hzh.rpc.common.RpcConsumer;
 
 /**

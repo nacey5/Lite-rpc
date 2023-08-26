@@ -38,9 +38,23 @@
    启动Consumer。
 
 架构图：  
-  ![img_1.png](img_1.png)  
+  ![img_1.png](img_1.png) 
+
+目前的依赖关系为
+rpc-consumer 和 rpc-provider 共同依赖于
+rpc-facade rpc-protocol rpc-registry
+然后 rpc-registry rpc-protocol依赖于 rpc-spi
+然后 rpc-facade 和 rpc-spi 依赖于 rpc-core  
 关系图:  
   ![img_2.png](img_2.png)  
+rpc-consumer: 这个模块是用于RPC的客户端，用于发起远程调用。
+rpc-provider: 这个模块是用于RPC的服务端，用于处理来自客户端的远程调用。
+rpc-facade: 这个模块是用于定义服务接口。
+rpc-protocol: 这个模块是用于定义RPC的通信协议，如序列化和反序列化消息。
+rpc-registry: 这个模块是用于服务注册和发现。
+rpc-spi: 这个模块是用于定义一些插件化的接口，允许用户扩展功能。
+rpc-core: 这个模块是整个RPC框架的核心，包含了基础的工具和公共代码。
+rpc-test: 这个模块是用于测试整个RPC框架的。  
 调用图:  
 ![img_3.png](img_3.png)  
 
