@@ -64,87 +64,106 @@ public class RpcProvider implements InitializingBean, BeanPostProcessor {
         }).start();
     }
 
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        registerService(bean);
+        return bean;
+    }
+
     private void startRpcServer() throws Exception {
         this.serverAddress = InetAddress.getLocalHost().getHostAddress();
         EventLoopGroup boss = new NioEventLoopGroup();
         EventLoopGroup worker = new NioEventLoopGroup();
 
-
         try {
-            // 启动直连服务
-            if (rpcProperties.getDirectAddress() != null && !rpcProperties.getDirectAddress().isEmpty()) {
-                String[] parts = rpcProperties.getDirectAddress().split(":");
-                if (parts.length != 2) {
-                    throw new IllegalArgumentException("Invalid directAddress format. Expected format: host:port");
-                }
-                String directHost = parts[0];
-                int directPort = Integer.parseInt(parts[1]);
-                ServerBootstrap directBootstrap = new ServerBootstrap();
-                directBootstrap.group(boss, worker)
-                        .channel(NioServerSocketChannel.class)
-                        .childHandler(new ChannelInitializer<SocketChannel>() {
-                            @Override
-                            protected void initChannel(SocketChannel socketChannel) throws Exception {
-                                socketChannel.pipeline()
-                                        .addLast(new MiniRpcEncoder())
-                                        .addLast(new MiniRpcDecoder())
-                                        .addLast(new ChainHandler(handlerChain))
-                                        .addLast(RpcRequestHandler.getInstance(rpcServiceMap));
-                            }
-                        })
-                        .childOption(ChannelOption.SO_KEEPALIVE, true);
-                ChannelFuture directChannelFuture = directBootstrap.bind(directHost, directPort).sync();
-                log.info("Direct server addr {} started on port {}", directHost, directPort);
-                directChannelFuture.channel().closeFuture().sync();
+            if (isDirectConnectionConfigured()) {
+                startDirectConnectionServer(boss, worker);
             } else {
-                ServerBootstrap bootstrap = new ServerBootstrap();
-                bootstrap.group(boss, worker)
-                        .channel(NioServerSocketChannel.class)
-                        .childHandler(new ChannelInitializer<SocketChannel>() {
-                            @Override
-                            protected void initChannel(SocketChannel socketChannel) throws Exception {
-                                socketChannel.pipeline()
-                                        .addLast(new MiniRpcEncoder())
-                                        .addLast(new MiniRpcDecoder())
-                                        .addLast(new ChainHandler(handlerChain))
-                                        .addLast(RpcRequestHandler.getInstance(rpcServiceMap));
-                            }
-                        })
-                        .childOption(ChannelOption.SO_KEEPALIVE, true);
-
-                ChannelFuture channelFuture = bootstrap.bind(this.serverAddress, this.serverPort).sync();
-                log.info("server addr {} started on port {}", this.serverAddress, this.serverPort);
-                channelFuture.channel().closeFuture().sync();
+                startServer(boss, worker);
             }
-
         } finally {
             boss.shutdownGracefully();
             worker.shutdownGracefully();
         }
     }
 
-    @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+    private boolean isDirectConnectionConfigured() {
+        return rpcProperties.getDirectAddress() != null && !rpcProperties.getDirectAddress().isEmpty();
+    }
+
+    private void startDirectConnectionServer(EventLoopGroup boss, EventLoopGroup worker) throws InterruptedException {
+        // ... [直连服务器的启动]
+        String[] parts = rpcProperties.getDirectAddress().split(":");
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("Invalid directAddress format. Expected format: host:port");
+        }
+        String directHost = parts[0];
+        int directPort = Integer.parseInt(parts[1]);
+        ServerBootstrap directBootstrap = new ServerBootstrap();
+        directBootstrap.group(boss, worker)
+                .channel(NioServerSocketChannel.class)
+                .childHandler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel socketChannel) throws Exception {
+                        socketChannel.pipeline()
+                                .addLast(new MiniRpcEncoder())
+                                .addLast(new MiniRpcDecoder())
+                                .addLast(new ChainHandler(handlerChain))
+                                .addLast(RpcRequestHandler.getInstance(rpcServiceMap));
+                    }
+                })
+                .childOption(ChannelOption.SO_KEEPALIVE, true);
+        ChannelFuture directChannelFuture = directBootstrap.bind(directHost, directPort).sync();
+        log.info("Direct server addr {} started on port {}", directHost, directPort);
+        directChannelFuture.channel().closeFuture().sync();
+    }
+
+    private void startServer(EventLoopGroup boss, EventLoopGroup worker) throws InterruptedException {
+        // ... [服务器的启动]
+        ServerBootstrap bootstrap = new ServerBootstrap();
+        bootstrap.group(boss, worker)
+                .channel(NioServerSocketChannel.class)
+                .childHandler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel socketChannel) throws Exception {
+                        socketChannel.pipeline()
+                                .addLast(new MiniRpcEncoder())
+                                .addLast(new MiniRpcDecoder())
+                                .addLast(new ChainHandler(handlerChain))
+                                .addLast(RpcRequestHandler.getInstance(rpcServiceMap));
+                    }
+                })
+                .childOption(ChannelOption.SO_KEEPALIVE, true);
+
+        ChannelFuture channelFuture = bootstrap.bind(this.serverAddress, this.serverPort).sync();
+        log.info("server addr {} started on port {}", this.serverAddress, this.serverPort);
+        channelFuture.channel().closeFuture().sync();
+    }
+
+
+    private void registerService(Object bean) {
         RpcService rpcService = bean.getClass().getAnnotation(RpcService.class);
         if (rpcService != null) {
             String serviceName = rpcService.serviceInterface().getName();
             String serviceVersion = rpcService.serviceVersion();
 
             try {
-                ServiceMeta serviceMeta = new ServiceMeta();
-                serviceMeta.setServiceAddr(serverAddress);
-                serviceMeta.setServicePort(serverPort);
-                serviceMeta.setServiceName(serviceName);
-                serviceMeta.setServiceVersion(serviceVersion);
-
+                ServiceMeta serviceMeta = createServiceMeta(serviceName, serviceVersion);
                 serviceRegistry.register(serviceMeta);
                 rpcServiceMap.put(RpcServiceHelper.buildServiceKey(serviceMeta.getServiceName(), serviceMeta.getServiceVersion()), bean);
-
             } catch (Exception e) {
                 log.error("failed to register service {}#{}", serviceName, serviceVersion, e);
             }
         }
-        return bean;
+    }
+
+    private ServiceMeta createServiceMeta(String serviceName, String serviceVersion) {
+        ServiceMeta serviceMeta = new ServiceMeta();
+        serviceMeta.setServiceAddr(serverAddress);
+        serviceMeta.setServicePort(serverPort);
+        serviceMeta.setServiceName(serviceName);
+        serviceMeta.setServiceVersion(serviceVersion);
+        return serviceMeta;
     }
 
 }

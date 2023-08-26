@@ -13,6 +13,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
+import java.io.IOException;
 import java.util.List;
 
 public class MiniRpcDecoder extends ByteToMessageDecoder {
@@ -28,78 +29,82 @@ public class MiniRpcDecoder extends ByteToMessageDecoder {
     */
     @Override
     public final void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-
         try {
             if (in.readableBytes() < ProtocolConstants.HEADER_TOTAL_LEN) {
                 return;
             }
             in.markReaderIndex();
 
-            short magic = in.readShort();
-            if (magic != ProtocolConstants.MAGIC) {
-                throw new IllegalArgumentException("magic number is illegal, " + magic);
-            }
+            MsgHeader header = decodeHeader(in);
+            byte[] data = decodeData(in, header.getMsgLen());
 
-            byte version = in.readByte();
-            byte serializeType = in.readByte();
-            byte msgType = in.readByte();
-            byte status = in.readByte();
-            long requestId = in.readLong();
-
-            int dataLength = in.readInt();
-            if (in.readableBytes() < dataLength) {
-                in.resetReaderIndex();
-                return;
-            }
-            byte[] data = new byte[dataLength];
-            in.readBytes(data);
-
-            MsgType msgTypeEnum = MsgType.findByType(msgType);
-            if (msgTypeEnum == null) {
-                return;
-            }
-
-            MsgHeader header = new MsgHeader();
-            header.setMagic(magic);
-            header.setVersion(version);
-            header.setSerialization(serializeType);
-            header.setStatus(status);
-            header.setRequestId(requestId);
-            header.setMsgType(msgType);
-            header.setMsgLen(dataLength);
-
-            RpcSerialization rpcSerialization = SerializationFactory.getRpcSerialization(serializeType);
-            switch (msgTypeEnum) {
+            RpcSerialization rpcSerialization = SerializationFactory.getRpcSerialization(header.getSerialization());
+            switch (MsgType.findByType(header.getMsgType())) {
                 case REQUEST:
-                    MiniRpcRequest request = rpcSerialization.deserialize(data, MiniRpcRequest.class);
-                    if (request != null) {
-                        MiniRpcProtocol<MiniRpcRequest> protocol = new MiniRpcProtocol<>();
-                        protocol.setHeader(header);
-                        protocol.setBody(request);
-                        RpcContext rpcContext = request.getRpcContext();
-                        if (rpcContext != null) {
-                            RpcContext.getContext().setAll(rpcContext);
-                        }
-                        out.add(protocol);
-                    }
+                    handleRequest(data, rpcSerialization, header, out);
                     break;
                 case RESPONSE:
-                    MiniRpcResponse response = rpcSerialization.deserialize(data, MiniRpcResponse.class);
-                    if (response != null) {
-                        MiniRpcProtocol<MiniRpcResponse> protocol = new MiniRpcProtocol<>();
-                        protocol.setHeader(header);
-                        protocol.setBody(response);
-                        out.add(protocol);
-                    }
+                    handleResponse(data, rpcSerialization, header, out);
                     break;
                 case HEARTBEAT:
-                    // TODO
+                    // TODO: Handle heartbeat
                     break;
+                default:
+                    throw new IllegalArgumentException("Unknown message type: " + header.getMsgType());
             }
         } finally {
             RpcContext.removeContext();
         }
+    }
 
+    private MsgHeader decodeHeader(ByteBuf in) {
+        short magic = in.readShort();
+        if (magic != ProtocolConstants.MAGIC) {
+            throw new IllegalArgumentException("Invalid magic number: " + magic);
+        }
 
+        MsgHeader header = new MsgHeader();
+        header.setMagic(magic);
+        header.setVersion(in.readByte());
+        header.setSerialization(in.readByte());
+        header.setMsgType(in.readByte());
+        header.setStatus(in.readByte());
+        header.setRequestId(in.readLong());
+        header.setMsgLen(in.readInt());
+
+        return header;
+    }
+
+    private byte[] decodeData(ByteBuf in, int dataLength) {
+        if (in.readableBytes() < dataLength) {
+            in.resetReaderIndex();
+            throw new IllegalArgumentException("Not enough readable bytes for data length: " + dataLength);
+        }
+
+        byte[] data = new byte[dataLength];
+        in.readBytes(data);
+        return data;
+    }
+
+    private void handleRequest(byte[] data, RpcSerialization rpcSerialization, MsgHeader header, List<Object> out) throws IOException {
+        MiniRpcRequest request = rpcSerialization.deserialize(data, MiniRpcRequest.class);
+        if (request != null) {
+            MiniRpcProtocol<MiniRpcRequest> protocol = new MiniRpcProtocol<>();
+            protocol.setHeader(header);
+            protocol.setBody(request);
+            RpcContext.getContext().setAll(request.getRpcContext());
+            out.add(protocol);
+        }
+    }
+
+    private void handleResponse(byte[] data, RpcSerialization rpcSerialization, MsgHeader header, List<Object> out) throws IOException {
+        MiniRpcResponse response = rpcSerialization.deserialize(data, MiniRpcResponse.class);
+        if (response != null) {
+            MiniRpcProtocol<MiniRpcResponse> protocol = new MiniRpcProtocol<>();
+            protocol.setHeader(header);
+            protocol.setBody(response);
+            out.add(protocol);
+        }
     }
 }
+
