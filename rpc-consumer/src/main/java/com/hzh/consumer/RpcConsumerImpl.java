@@ -3,6 +3,7 @@ package com.hzh.consumer;
 import com.hzh.consumer.pool.RpcConnection;
 import com.hzh.consumer.pool.RpcConnectionFactory;
 import com.hzh.consumer.proxy.GenericInvokerProxy;
+import com.hzh.rpc.circuitbreaker.CircuitBreaker;
 import com.hzh.rpc.register.RegistryService;
 import com.hzh.rpc.codec.MiniRpcDecoder;
 import com.hzh.rpc.codec.MiniRpcEncoder;
@@ -191,9 +192,9 @@ public class RpcConsumerImpl implements RpcConsumer, AutoCloseable {
         }, 0, 10, TimeUnit.SECONDS);  // 每10秒发送一次心跳
     }
 
-    public Object invokeGeneric(String serviceName, String methodName, String serviceVersion, long timeout, Class[] paramTypes, Object... args) throws Throwable {
+    public Object invokeGeneric(String serviceName, String methodName, String serviceVersion, long timeout, Class[] paramTypes, CircuitBreaker circuitBreaker, Object... args) throws Throwable {
         GenericInvokerProxy genericInvoker = new GenericInvokerProxy(registryService);
-        return genericInvoker.invoke(serviceName, methodName, serviceVersion, timeout, paramTypes, args);
+        return genericInvoker.invoke(serviceName, methodName, serviceVersion, timeout, paramTypes,circuitBreaker, args);
     }
 
     @Override

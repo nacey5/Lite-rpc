@@ -1,5 +1,6 @@
 package com.hzh.rpc.common;
 
+import com.hzh.rpc.circuitbreaker.CircuitBreaker;
 import com.hzh.rpc.protocol.MiniRpcProtocol;
 import com.hzh.rpc.register.RegistryService;
 import io.netty.channel.ChannelFuture;
@@ -14,7 +15,7 @@ import io.netty.channel.ChannelFuture;
 public interface RpcConsumer {
     void sendRequest(MiniRpcProtocol<?> protocol, RegistryService registryService) throws Exception;
 
-    Object invokeGeneric(String serviceName, String methodName, String serviceVersion, long timeout, Class[] paramTypes, Object... args) throws Throwable;
+    Object invokeGeneric(String serviceName, String methodName, String serviceVersion, long timeout, Class[] paramTypes, CircuitBreaker circuitBreaker, Object... args) throws Throwable;
 
     ChannelFuture tryConnect() throws InterruptedException;
 

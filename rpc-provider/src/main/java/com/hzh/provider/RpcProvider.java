@@ -48,7 +48,7 @@ public class RpcProvider implements InitializingBean, BeanPostProcessor {
         this.handlerChain = new HandlerChain();
         // 添加处理器到HandlerChain
         this.handlerChain.
-                addHandler(new RateLimiterHandler(100L, 10L));
+                addHandler(new RateLimiterHandler(10000L, 100L));
         // 初始化RpcProperties
         this.rpcProperties = rpcProperties;
     }

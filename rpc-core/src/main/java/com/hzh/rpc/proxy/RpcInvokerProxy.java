@@ -1,10 +1,8 @@
 package com.hzh.rpc.proxy;
 
 import com.hzh.rpc.RpcContext;
+import com.hzh.rpc.circuitbreaker.CircuitBreaker;
 import com.hzh.rpc.common.*;
-import com.hzh.rpc.local.LocalMock;
-import com.hzh.rpc.local.LocalStub;
-import com.hzh.rpc.local.ServiceHandler;
 import com.hzh.rpc.register.RegistryService;
 import com.hzh.rpc.protocol.MiniRpcProtocol;
 import com.hzh.rpc.protocol.MsgHeader;
@@ -13,7 +11,6 @@ import com.hzh.rpc.protocol.ProtocolConstants;
 import io.netty.channel.DefaultEventLoop;
 import io.netty.util.concurrent.DefaultPromise;
 
-import javax.annotation.Resource;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
@@ -23,16 +20,16 @@ public class RpcInvokerProxy implements InvocationHandler {
     private final long timeout;
     private final RegistryService registryService;
     private final RpcConsumer rpcConsumer; // 添加RpcConsumer作为成员变量
-
+    private final CircuitBreaker circuitBreaker;
     private static final int MAX_RETRIES = 3;// 定义重试次数的常数
     private static final int RETRY_DELAY_MS = 1000; // 定义重试间隔时间的常数
 
-
-    public RpcInvokerProxy(String serviceVersion, long timeout, RegistryService registryService,RpcConsumer rpcConsumer) {
+    public RpcInvokerProxy(String serviceVersion, long timeout, RegistryService registryService,RpcConsumer rpcConsumer,CircuitBreaker circuitBreaker) {
         this.serviceVersion = serviceVersion;
         this.timeout = timeout;
         this.registryService = registryService;
         this.rpcConsumer = rpcConsumer; // 在构造函数中初始化RpcConsumer
+        this.circuitBreaker = circuitBreaker;
     }
     //暂时先将本地存根的方式注释掉，目前没有比较好的实现方式
 
@@ -47,6 +44,9 @@ public class RpcInvokerProxy implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        if (!circuitBreaker.canExecute()) {
+            throw new RuntimeException("Circuit Breaker is open, cannot execute the RPC call.");
+        }
         int retryCount = 0;
 //        if (serviceHandler!=null){
 //            return serviceHandler.handle(method,args);
@@ -56,13 +56,18 @@ public class RpcInvokerProxy implements InvocationHandler {
                 MiniRpcProtocol<MiniRpcRequest> protocol = createProtocol(method, args);
                 //hold request by ThreadLocal
                 setContext(protocol);
-                return sendRpcRequest(protocol);
+                Object result = sendRpcRequest(protocol);
+                circuitBreaker.recordSuccess();  // 记录成功的调用
+                return result;
             } catch (Exception e) {
                 if (shouldRetry(e) && retryCount < MAX_RETRIES) {
                     retryCount++;
                     // 此处添加延迟
                     Thread.sleep(RETRY_DELAY_MS * retryCount);
                     continue;
+                }
+                if (circuitBreaker.isCallTimeout(System.currentTimeMillis())) {
+                    circuitBreaker.recordFailure();  // 记录失败
                 }
                 throw e;  // 如果达到最大重试次数或异常不应该重试，抛出异常
             }

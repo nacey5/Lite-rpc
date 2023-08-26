@@ -1,5 +1,6 @@
 package com.hzh.rpc.spi.proxy;
 
+import com.hzh.rpc.circuitbreaker.CircuitBreaker;
 import com.hzh.rpc.common.RpcConsumer;
 import com.hzh.rpc.register.RegistryService;
 
@@ -11,7 +12,8 @@ import com.hzh.rpc.register.RegistryService;
  * @Version 0.0.1
  **/
 public interface RpcProxy {
-    Object getProxy(Class<?> interfaceClass, String serviceVersion, long timeout, RegistryService registryService, RpcConsumer rpcConsumer) throws Exception;
+    Object getProxy(Class<?> interfaceClass, String serviceVersion, long timeout,
+                    RegistryService registryService, RpcConsumer rpcConsumer, CircuitBreaker circuitBreaker) throws Exception;
 
     String getType();
 }

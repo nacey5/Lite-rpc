@@ -1,21 +1,19 @@
 package com.hzh.consumer.proxy;
 
 import com.hzh.consumer.RpcConsumerFactory;
+import com.hzh.consumer.circuitbreaker.SimpleCircuitBreaker;
 import com.hzh.consumer.enums.ProxyType;
+import com.hzh.consumer.factory.CircuitBreakerFactory;
 import com.hzh.provider.registry.RegistryFactory;
+import com.hzh.rpc.circuitbreaker.CircuitBreaker;
 import com.hzh.rpc.common.RpcConsumer;
-import com.hzh.rpc.defaultImpl.proxy.JavassistProxyFactory;
-import com.hzh.rpc.proxy.RpcInvokerProxy;
 import com.hzh.rpc.register.RegistryService;
 import com.hzh.provider.registry.RegistryType;
 import com.hzh.rpc.spi.proxy.RpcProxy;
 import io.netty.channel.ChannelFuture;
-import javassist.util.proxy.MethodHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.FactoryBean;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.ServiceLoader;
 
 @Slf4j
@@ -37,6 +35,8 @@ public class RpcReferenceBean implements FactoryBean<Object> {
 
     private ProxyType proxyType = ProxyType.JDK; // 默认为JDK代理
 
+
+
     @Override
     public Object getObject() throws Exception {
         return object;
@@ -49,6 +49,10 @@ public class RpcReferenceBean implements FactoryBean<Object> {
 
 
     public void init() throws Exception {
+        doInit();
+    }
+
+    private void doInit() throws Exception {
         // 检查是否设置了直连地址
         if (this.directAddress != null && !this.directAddress.isEmpty()) {
             // 使用直连地址进行连接
@@ -71,7 +75,8 @@ public class RpcReferenceBean implements FactoryBean<Object> {
             ServiceLoader<RpcProxy> loader = ServiceLoader.load(RpcProxy.class);
             for (RpcProxy proxy : loader) {
                 if (proxyType.getName().equals(proxy.getType())) {
-                    this.object = proxy.getProxy(interfaceClass, serviceVersion, timeout, null,instance);
+                    CircuitBreaker simpleCircuitBreaker = CircuitBreakerFactory.createCircuitBreaker(CircuitBreakerFactory.BreakerType.SIMPLE, 5, 60000, 5000);
+                    this.object = proxy.getProxy(interfaceClass, serviceVersion, timeout, null,instance,simpleCircuitBreaker);
                     return;
                 }
             }
@@ -81,15 +86,14 @@ public class RpcReferenceBean implements FactoryBean<Object> {
             ServiceLoader<RpcProxy> loader = ServiceLoader.load(RpcProxy.class);
             for (RpcProxy proxy : loader) {
                 if (proxyType.getName().equals(proxy.getType())) {
-                    this.object = proxy.getProxy(interfaceClass, serviceVersion, timeout, registryService, RpcConsumerFactory.getInstance());
+                    CircuitBreaker simpleCircuitBreaker = CircuitBreakerFactory.createCircuitBreaker(CircuitBreakerFactory.BreakerType.SIMPLE, 5, 60000, 5000);
+                    this.object = proxy.getProxy(interfaceClass, serviceVersion, timeout, registryService, RpcConsumerFactory.getInstance(),simpleCircuitBreaker);
                     return;
                 }
             }
             throw new IllegalArgumentException("Unsupported proxy type: " + proxyType);
         }
     }
-
-
 
 
     public void setInterfaceClass(Class<?> interfaceClass) {

@@ -1,5 +1,6 @@
 package com.hzh.rpc.defaultImpl.proxy;
 
+import com.hzh.rpc.circuitbreaker.CircuitBreaker;
 import com.hzh.rpc.common.RpcConsumer;
 import com.hzh.rpc.proxy.RpcInvokerProxy;
 import com.hzh.rpc.register.RegistryService;
@@ -23,11 +24,11 @@ public class JavassistProxy implements RpcProxy {
     }
 
     @Override
-    public Object getProxy(Class<?> interfaceClass, String serviceVersion, long timeout, RegistryService registryService, RpcConsumer rpcConsumer) throws Exception {
+    public Object getProxy(Class<?> interfaceClass, String serviceVersion, long timeout, RegistryService registryService, RpcConsumer rpcConsumer, CircuitBreaker circuitBreaker) throws Exception {
         return JavassistProxyFactory.getProxy(interfaceClass, new MethodHandler() {
             @Override
             public Object invoke(Object self, Method thisMethod, Method proceed, Object[] args) throws Throwable {
-                RpcInvokerProxy invoker = new RpcInvokerProxy(serviceVersion, timeout, registryService,rpcConsumer);
+                RpcInvokerProxy invoker = new RpcInvokerProxy(serviceVersion, timeout, registryService,rpcConsumer,circuitBreaker);
                 return invoker.invoke(self, thisMethod, args);
             }
         });

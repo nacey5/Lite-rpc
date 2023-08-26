@@ -2,6 +2,9 @@ package com.hzh.consumer.controller;
 
 
 import com.hzh.consumer.RpcConsumerFactory;
+import com.hzh.consumer.circuitbreaker.SimpleCircuitBreaker;
+import com.hzh.consumer.factory.CircuitBreakerFactory;
+import com.hzh.rpc.circuitbreaker.CircuitBreaker;
 import com.hzh.rpc.common.RpcConsumer;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +34,7 @@ public class CommonInvokeController {
         long timeout = 5000;  // 从配置或其他地方获取
         Class<?>[] parameterTypes = transferToTypes(parameterTypeNames);
         Object[] args = transferToObjects(reqBody, parameterTypes);
+        CircuitBreaker simpleCircuitBreaker= CircuitBreakerFactory.createCircuitBreaker(CircuitBreakerFactory.BreakerType.SIMPLE, 5, 60000, 5000);
         // 使用泛化调用
         String result = (String) consumer.invokeGeneric(
                 serviceName,
@@ -38,6 +42,7 @@ public class CommonInvokeController {
                 serviceVersion,
                 timeout,
                 parameterTypes,
+                simpleCircuitBreaker,
                 args);
         return result;
     }
