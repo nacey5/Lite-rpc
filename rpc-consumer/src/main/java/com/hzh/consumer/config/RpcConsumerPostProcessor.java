@@ -1,11 +1,15 @@
 package com.hzh.consumer.config;
 
+import com.hzh.consumer.hook.ShutdownHook;
+import com.hzh.consumer.hook.ShutdownHookManager;
+import com.hzh.consumer.hook.annotations.HookShutdown;
 import com.hzh.consumer.proxy.RpcReferenceBean;
 import com.hzh.consumer.annotation.RpcReference;
 import com.hzh.rpc.common.RpcConstants;
 import com.hzh.rpc.local.annotations.RpcMock;
 import com.hzh.rpc.local.annotations.RpcStub;
 import lombok.extern.slf4j.Slf4j;
+import org.reflections.Reflections;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -23,6 +27,7 @@ import org.springframework.util.ReflectionUtils;
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 @Slf4j
@@ -51,6 +56,7 @@ public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanCl
                 processFields(clazz);
             }
         }
+        parseHook();
         registerBeans((BeanDefinitionRegistry) beanFactory);
     }
 
@@ -111,6 +117,24 @@ public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanCl
         ReflectionUtils.doWithFields(clazz, this::parseRpcReference);
         //本地存根似乎这种方案不太好，因为这样会导致本地存根的beanDefinition被注册到spring容器中，而本地存根的beanDefinition是不需要注册到spring容器中的
 //                ReflectionUtils.doWithFields(clazz, this::parseLocalAnnotations);
+    }
+
+    private void parseHook(){
+        // hook基础包名，后续将更改为配置，但是如果脱离了框架去识别配置文件，会导致启动比较慢的问题
+        Reflections reflections = new Reflections("com.hzh.consumer.hook.instance");
+        Set<Class<?>> annotatedClasses = reflections.getTypesAnnotatedWith(HookShutdown.class);
+        for (Class<?> clazz : annotatedClasses) {
+            if (ShutdownHook.class.isAssignableFrom(clazz)) { // 确保类实现了ShutdownHook接口
+                try {
+                    ShutdownHook hookInstance = (ShutdownHook) clazz.getDeclaredConstructor().newInstance();
+                    HookShutdown annotation = clazz.getAnnotation(HookShutdown.class);
+                    ShutdownHookManager.getInstance().addShutdownHook(hookInstance, annotation.priority());
+                } catch (Exception e) {
+                    // 处理异常，例如日志记录
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
 }

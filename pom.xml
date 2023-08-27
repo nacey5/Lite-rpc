@@ -41,6 +41,7 @@
         <commonPool2.version>2.11.1</commonPool2.version>
         <mockito.version>3.12.4</mockito.version>
         <powermock.version>2.0.9</powermock.version>
+        <org.reflections.version>0.9.12</org.reflections.version>
     </properties>
 
     <dependencyManagement>
@@ -179,6 +180,12 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-pool2</artifactId>
                 <version>${commonPool2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.reflections</groupId>
+                <artifactId>reflections</artifactId>
+                <version>${org.reflections.version}</version>
             </dependency>
 
             <dependency>

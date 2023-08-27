@@ -4,6 +4,8 @@ import com.hzh.consumer.enums.CircuitBreakerState;
 import com.hzh.rpc.circuitbreaker.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * @ClassName SimpleCircuitBreaker
  * @Description TODO
@@ -22,6 +24,8 @@ public class SimpleCircuitBreaker implements CircuitBreaker {
     private long lastOpenedTime;
     private int consecutiveFailures;
 
+    private final ReentrantLock lock = new ReentrantLock();
+
     public SimpleCircuitBreaker(int failureThreshold, int halfOpenInterval, long maxTimeout) {
         this.state = CircuitBreakerState.CLOSED;
         this.failureThreshold = failureThreshold;
@@ -31,7 +35,65 @@ public class SimpleCircuitBreaker implements CircuitBreaker {
         this.consecutiveFailures = 0;
     }
 
-    public synchronized boolean canExecute() {
+    public boolean canExecute() {
+        lock.lock();
+        try {
+            return canExecuteLogic();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void recordFailure() {
+        lock.lock();
+        try {
+            recordFailureLogic();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+
+    public void recordSuccess() {
+        lock.lock();
+        try {
+            recordSuccessLogic();
+        } finally {
+            lock.unlock();
+        }
+
+    }
+
+
+    public boolean isCallTimeout(long callStartTime) {
+        lock.lock();
+        try {
+            return isCallTimeoutLogic(callStartTime);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void recordSuccessLogic() {
+        if (state == CircuitBreakerState.HALF_OPEN) {
+            state = CircuitBreakerState.CLOSED;
+            consecutiveFailures = 0;
+        }
+        if (consecutiveFailures > 0) {
+            consecutiveFailures--;
+        }
+    }
+
+    private void recordFailureLogic() {
+        consecutiveFailures++;
+        log.warn("recordFailure: " + consecutiveFailures);
+        if (consecutiveFailures >= failureThreshold) {
+            state = CircuitBreakerState.OPEN;
+            lastOpenedTime = System.currentTimeMillis();
+        }
+    }
+
+    private boolean canExecuteLogic() {
         switch (state) {
             case CLOSED:
                 return true;
@@ -48,26 +110,7 @@ public class SimpleCircuitBreaker implements CircuitBreaker {
         return false;
     }
 
-    public synchronized void recordFailure() {
-        consecutiveFailures++;
-        log.warn("recordFailure: " + consecutiveFailures);
-        if (consecutiveFailures >= failureThreshold) {
-            state = CircuitBreakerState.OPEN;
-            lastOpenedTime = System.currentTimeMillis();
-        }
-    }
-
-    public synchronized void recordSuccess() {
-        if (state == CircuitBreakerState.HALF_OPEN) {
-            state = CircuitBreakerState.CLOSED;
-            consecutiveFailures = 0;
-        }
-        if (consecutiveFailures > 0) {
-            consecutiveFailures--;
-        }
-    }
-
-    public synchronized boolean isCallTimeout(long callStartTime) {
+    private boolean isCallTimeoutLogic(long callStartTime) {
         log.info("isCallTimeout: " + (System.currentTimeMillis() - callStartTime) + " > " + maxTimeout);
         return (System.currentTimeMillis() - callStartTime) > maxTimeout;
     }
