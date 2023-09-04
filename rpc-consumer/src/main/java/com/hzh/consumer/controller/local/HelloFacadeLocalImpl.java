@@ -17,6 +17,7 @@ import java.lang.reflect.Method;
  **/
 //@Service
 @Slf4j
+//@Service
 public class HelloFacadeLocalImpl implements HelloFacade {
     @Override
     public String hello(String name) {
