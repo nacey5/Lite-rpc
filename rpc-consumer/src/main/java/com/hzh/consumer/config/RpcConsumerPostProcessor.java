@@ -6,7 +6,6 @@ import com.hzh.consumer.hook.annotations.HookShutdown;
 import com.hzh.consumer.proxy.RpcReferenceBean;
 import com.hzh.consumer.annotation.RpcReference;
 import com.hzh.rpc.common.RpcConstants;
-import com.hzh.rpc.local.annotations.RpcMock;
 import com.hzh.rpc.local.annotations.RpcStub;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
@@ -17,6 +16,7 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -81,25 +81,23 @@ public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanCl
     /**
      * 这部分不算过期，但是本地存根功能目前暂未完成，代码暂留
      *
-     * @param field
+     * @param clazz
      */
     @Deprecated
-    private void parseLocalAnnotations(Field field) {
-        RpcMock mockAnnotation = AnnotationUtils.getAnnotation(field, RpcMock.class);
-        if (mockAnnotation != null) {
-            // 创建并注册 @RpcMock 对应的bean定义
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(mockAnnotation.value());
-            BeanDefinition beanDefinition = builder.getBeanDefinition();
-            rpcRefBeanDefinitions.put(field.getName() + "Mock", beanDefinition);
+    private Boolean parseLocalAnnotations(Class clazz) {
+        for (Field field : clazz.getDeclaredFields()) {
+            //先解析RpcStub
+            RpcStub rpcStub  = AnnotationUtils.getAnnotation(field, RpcStub.class);
+            if (rpcStub != null) {
+                // 创建并注册 @RpcStub 对应的bean定义
+                Class<?> rpcClass = rpcStub.value();
+                GenericBeanDefinition rpcBeanDefinition = new GenericBeanDefinition();
+                rpcBeanDefinition.setBeanClass(rpcClass);
+                // 这里可以设置其他属性，例如作用域、构造参数等
+                rpcRefBeanDefinitions.put("",rpcBeanDefinition);
+            }
         }
-
-        RpcStub stubAnnotation = AnnotationUtils.getAnnotation(field, RpcStub.class);
-        if (stubAnnotation != null) {
-            // 创建并注册 @RpcStub 对应的bean定义
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(stubAnnotation.value());
-            BeanDefinition beanDefinition = builder.getBeanDefinition();
-            rpcRefBeanDefinitions.put(field.getName() + "Stub", beanDefinition);
-        }
+        return true;
     }
 
     private void registerBeans(BeanDefinitionRegistry beanFactory) {
