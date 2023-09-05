@@ -4,7 +4,8 @@ import lombok.Getter;
 
 public enum SerializationTypeEnum {
     HESSIAN(0x10),
-    JSON(0x20);
+    JSON(0x20),
+    PROTOBUF(0x30);
 
     @Getter
     private final int type;

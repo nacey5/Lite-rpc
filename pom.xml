@@ -42,6 +42,7 @@
         <mockito.version>3.12.4</mockito.version>
         <powermock.version>2.0.9</powermock.version>
         <org.reflections.version>0.9.12</org.reflections.version>
+        <org.protolbuf.version>3.17.3</org.protolbuf.version>
     </properties>
 
     <dependencyManagement>
@@ -186,6 +187,12 @@
                 <groupId>org.reflections</groupId>
                 <artifactId>reflections</artifactId>
                 <version>${org.reflections.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${org.protolbuf.version}</version> <!-- Use the latest version -->
             </dependency>
 
             <dependency>
