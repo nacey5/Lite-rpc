@@ -17,6 +17,8 @@ import java.util.concurrent.TimeUnit;
 public class RpcInvokerProxy implements InvocationHandler {
     public static final ThreadLocal<MiniRpcProtocol<MiniRpcRequest>> CURRENT_REQUEST = new ThreadLocal<>();
     private final String serviceVersion;
+
+    private final String group;
     private final long timeout;
     private final RegistryService registryService;
     private final RpcConsumer rpcConsumer; // 添加RpcConsumer作为成员变量
@@ -24,12 +26,13 @@ public class RpcInvokerProxy implements InvocationHandler {
     private static final int MAX_RETRIES = 3;// 定义重试次数的常数
     private static final int RETRY_DELAY_MS = 1000; // 定义重试间隔时间的常数
 
-    public RpcInvokerProxy(String serviceVersion, long timeout, RegistryService registryService,RpcConsumer rpcConsumer,CircuitBreaker circuitBreaker) {
+    public RpcInvokerProxy(String serviceVersion, long timeout, RegistryService registryService,RpcConsumer rpcConsumer,CircuitBreaker circuitBreaker,String group) {
         this.serviceVersion = serviceVersion;
         this.timeout = timeout;
         this.registryService = registryService;
         this.rpcConsumer = rpcConsumer; // 在构造函数中初始化RpcConsumer
         this.circuitBreaker = circuitBreaker;
+        this.group=group;
     }
     //暂时先将本地存根的方式注释掉，目前没有比较好的实现方式
 
@@ -53,7 +56,8 @@ public class RpcInvokerProxy implements InvocationHandler {
 //        }
         while (true) {
             try {
-                MiniRpcProtocol<MiniRpcRequest> protocol = createProtocol(method, args);
+                //要加入group
+                MiniRpcProtocol<MiniRpcRequest> protocol = createProtocol(group,method, args);
                 //hold request by ThreadLocal
                 setContext(protocol);
                 Object result = sendRpcRequest(protocol);
@@ -83,10 +87,10 @@ public class RpcInvokerProxy implements InvocationHandler {
         context.set("body", protocol.getBody());
     }
 
-    private MiniRpcProtocol<MiniRpcRequest> createProtocol(Method method, Object[] args) {
+    private MiniRpcProtocol<MiniRpcRequest> createProtocol(String group,Method method, Object[] args) {
         MiniRpcProtocol<MiniRpcRequest> protocol = new MiniRpcProtocol<>();
         protocol.setHeader(createHeader());
-        protocol.setBody(createRequest(method, args));
+        protocol.setBody(createRequest(group,method, args));
         return protocol;
     }
 
@@ -103,7 +107,7 @@ public class RpcInvokerProxy implements InvocationHandler {
         return header;
     }
 
-    private MiniRpcRequest createRequest(Method method, Object[] args) {
+    private MiniRpcRequest createRequest(String group,Method method, Object[] args) {
         MiniRpcRequest request = new MiniRpcRequest();
         request.setServiceVersion(this.serviceVersion);
         request.setClassName(method.getDeclaringClass().getName());
@@ -111,6 +115,7 @@ public class RpcInvokerProxy implements InvocationHandler {
         request.setParameterTypes(method.getParameterTypes());
         request.setParams(args);
         request.setRpcContext(RpcContext.getContext());
+        request.setGroup(group);
         return request;
     }
 
@@ -136,12 +141,12 @@ public class RpcInvokerProxy implements InvocationHandler {
         return false;  // 默认不重试
     }
 
-    public Object invokeGeneric(String serviceName, String methodName, Object[] args,Class[] paramTypes) throws Throwable {
-        MiniRpcProtocol<MiniRpcRequest> protocol = createGenericProtocol(serviceName, methodName, args,paramTypes);
+    public Object invokeGeneric(String serviceName, String methodName, Object[] args,Class[] paramTypes,String group) throws Throwable {
+        MiniRpcProtocol<MiniRpcRequest> protocol = createGenericProtocol(serviceName, methodName, args,paramTypes,group);
         return sendRpcRequest(protocol);
     }
 
-    private MiniRpcProtocol<MiniRpcRequest> createGenericProtocol(String serviceName, String methodName, Object[] args,Class[] parameterTypes){
+    private MiniRpcProtocol<MiniRpcRequest> createGenericProtocol(String serviceName, String methodName, Object[] args,Class[] parameterTypes,String group){
         MiniRpcProtocol<MiniRpcRequest> protocol = new MiniRpcProtocol<>();
         protocol.setHeader(createHeader());
         MiniRpcRequest request = new MiniRpcRequest();
@@ -151,6 +156,7 @@ public class RpcInvokerProxy implements InvocationHandler {
         request.setParameterTypes(parameterTypes);
         request.setParams(args);
         request.setRpcContext(RpcContext.getContext());
+        request.setGroup(group);
         protocol.setBody(request);
         return protocol;
     }

@@ -19,6 +19,8 @@ public @interface RpcReference {
 
     String registryAddress() default "192.168.199.132:2181";
 
+    String group() default "";
+
     long timeout() default 5000;
 
     ProxyType proxyType() default ProxyType.JDK; // 默认为JDK代理

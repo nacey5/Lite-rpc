@@ -13,7 +13,7 @@ import com.hzh.rpc.register.RegistryService;
  **/
 public interface RpcProxy {
     Object getProxy(Class<?> interfaceClass, String serviceVersion, long timeout,
-                    RegistryService registryService, RpcConsumer rpcConsumer, CircuitBreaker circuitBreaker) throws Exception;
+                    RegistryService registryService, RpcConsumer rpcConsumer, CircuitBreaker circuitBreaker,String group) throws Exception;
 
     String getType();
 }

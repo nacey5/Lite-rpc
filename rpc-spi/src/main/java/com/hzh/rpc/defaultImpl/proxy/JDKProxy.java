@@ -18,11 +18,11 @@ import java.lang.reflect.Proxy;
 public class JDKProxy implements RpcProxy {
 
     @Override
-    public Object getProxy(Class<?> interfaceClass, String serviceVersion, long timeout, RegistryService registryService, RpcConsumer rpcConsumer, CircuitBreaker circuitBreaker) {
+    public Object getProxy(Class<?> interfaceClass, String serviceVersion, long timeout, RegistryService registryService, RpcConsumer rpcConsumer, CircuitBreaker circuitBreaker,String group) {
         return Proxy.newProxyInstance(
                 interfaceClass.getClassLoader(),
                 new Class<?>[]{interfaceClass},
-                new RpcInvokerProxy(serviceVersion, timeout, registryService,rpcConsumer,circuitBreaker)
+                new RpcInvokerProxy(serviceVersion, timeout, registryService,rpcConsumer,circuitBreaker,group)
         );
     }
 

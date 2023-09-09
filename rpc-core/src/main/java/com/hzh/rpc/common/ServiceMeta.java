@@ -13,4 +13,7 @@ public class ServiceMeta {
 
     private int servicePort;
 
+
+    private String group;
+
 }

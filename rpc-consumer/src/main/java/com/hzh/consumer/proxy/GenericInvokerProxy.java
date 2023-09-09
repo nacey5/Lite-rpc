@@ -20,9 +20,9 @@ public class GenericInvokerProxy {
         this.registryService = registryService;
     }
 
-    public Object invoke(String serviceName, String methodName, String serviceVersion, long timeout, Class[] paramTypes, CircuitBreaker circuitBreaker, Object... args) throws Throwable {
-        RpcInvokerProxy invoker = new RpcInvokerProxy(serviceVersion, timeout, registryService,RpcConsumerFactory.getInstance(),circuitBreaker);
-        return invoker.invokeGeneric(serviceName, methodName, args,paramTypes);
+    public Object invoke(String serviceName, String methodName,String group, String serviceVersion, long timeout, Class[] paramTypes, CircuitBreaker circuitBreaker, Object... args) throws Throwable {
+        RpcInvokerProxy invoker = new RpcInvokerProxy(serviceVersion, timeout, registryService,RpcConsumerFactory.getInstance(),circuitBreaker,group);
+        return invoker.invokeGeneric(serviceName, methodName, args,paramTypes,group);
     }
 }
 

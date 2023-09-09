@@ -15,7 +15,7 @@ import io.netty.channel.ChannelFuture;
 public interface RpcConsumer {
     void sendRequest(MiniRpcProtocol<?> protocol, RegistryService registryService) throws Exception;
 
-    Object invokeGeneric(String serviceName, String methodName, String serviceVersion, long timeout, Class[] paramTypes, CircuitBreaker circuitBreaker, Object... args) throws Throwable;
+    Object invokeGeneric(String serviceName, String methodName, String serviceVersion,String group, long timeout, Class[] paramTypes, CircuitBreaker circuitBreaker, Object... args) throws Throwable;
 
     ChannelFuture tryConnect() throws InterruptedException;
 

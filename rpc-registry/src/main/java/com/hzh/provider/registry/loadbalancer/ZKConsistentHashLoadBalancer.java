@@ -49,7 +49,7 @@ public class ZKConsistentHashLoadBalancer implements ServiceLoadBalancer<Service
 
     private String buildServiceInstanceKey(ServiceInstance<ServiceMeta> instance) {
         ServiceMeta payload = instance.getPayload();
-        return String.join(":", payload.getServiceAddr(), String.valueOf(payload.getServicePort()));
+        return String.join(":", payload.getServiceAddr(), String.valueOf(payload.getServicePort()), payload.getGroup());
     }
 
     public void setHashStrategy(HashStrategy hashStrategy) {

@@ -15,4 +15,6 @@ public @interface RpcService {
     Class<?> serviceInterface() default Object.class;
 
     String serviceVersion() default "1.0";
+
+    String group() default "";
 }

@@ -146,23 +146,24 @@ public class RpcProvider implements InitializingBean, BeanPostProcessor {
         if (rpcService != null) {
             String serviceName = rpcService.serviceInterface().getName();
             String serviceVersion = rpcService.serviceVersion();
-
+            String group=rpcService.group();
             try {
-                ServiceMeta serviceMeta = createServiceMeta(serviceName, serviceVersion);
+                ServiceMeta serviceMeta = createServiceMeta(serviceName, serviceVersion,group);
                 serviceRegistry.register(serviceMeta);
-                rpcServiceMap.put(RpcServiceHelper.buildServiceKey(serviceMeta.getServiceName(), serviceMeta.getServiceVersion()), bean);
+                rpcServiceMap.put(RpcServiceHelper.buildServiceKey(serviceMeta.getServiceName(), serviceMeta.getServiceVersion(),serviceMeta.getGroup()), bean);
             } catch (Exception e) {
                 log.error("failed to register service {}#{}", serviceName, serviceVersion, e);
             }
         }
     }
 
-    private ServiceMeta createServiceMeta(String serviceName, String serviceVersion) {
+    private ServiceMeta createServiceMeta(String serviceName, String serviceVersion,String group) {
         ServiceMeta serviceMeta = new ServiceMeta();
         serviceMeta.setServiceAddr(serverAddress);
         serviceMeta.setServicePort(serverPort);
         serviceMeta.setServiceName(serviceName);
         serviceMeta.setServiceVersion(serviceVersion);
+        serviceMeta.setGroup(group);
         return serviceMeta;
     }
 

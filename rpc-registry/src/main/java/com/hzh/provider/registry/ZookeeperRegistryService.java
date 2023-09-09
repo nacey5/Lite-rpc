@@ -40,7 +40,7 @@ public class ZookeeperRegistryService implements RegistryService {
     public void register(ServiceMeta serviceMeta) throws Exception {
         ServiceInstance<ServiceMeta> serviceInstance = ServiceInstance
                 .<ServiceMeta>builder()
-                .name(RpcServiceHelper.buildServiceKey(serviceMeta.getServiceName(), serviceMeta.getServiceVersion()))
+                .name(RpcServiceHelper.buildServiceKey(serviceMeta.getServiceName(), serviceMeta.getServiceVersion(),serviceMeta.getGroup()))
                 .address(serviceMeta.getServiceAddr())
                 .port(serviceMeta.getServicePort())
                 .payload(serviceMeta)

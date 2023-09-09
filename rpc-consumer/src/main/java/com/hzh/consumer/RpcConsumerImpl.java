@@ -117,9 +117,9 @@ public class RpcConsumerImpl implements RpcConsumer, AutoCloseable {
         return connectionPool;
     }
 
-    public Object invokeGeneric(String serviceName, String methodName, String serviceVersion, long timeout, Class[] paramTypes, CircuitBreaker circuitBreaker, Object... args) throws Throwable {
+    public Object invokeGeneric(String serviceName, String methodName, String serviceVersion,String group, long timeout, Class[] paramTypes, CircuitBreaker circuitBreaker, Object... args) throws Throwable {
         GenericInvokerProxy genericInvoker = new GenericInvokerProxy(registryService);
-        return genericInvoker.invoke(serviceName, methodName, serviceVersion, timeout, paramTypes, circuitBreaker, args);
+        return genericInvoker.invoke(serviceName, methodName, serviceVersion,group, timeout, paramTypes, circuitBreaker, args);
     }
 
 
@@ -151,7 +151,7 @@ public class RpcConsumerImpl implements RpcConsumer, AutoCloseable {
 
     private ServiceMeta discoverService(MiniRpcRequest request) throws Exception {
         Object[] params = request.getParams();
-        String serviceKey = RpcServiceHelper.buildServiceKey(request.getClassName(), request.getServiceVersion());
+        String serviceKey = RpcServiceHelper.buildServiceKey(request.getClassName(), request.getServiceVersion(),request.getGroup());
         int invokerHashCode = params.length > 0 ? params[0].hashCode() : serviceKey.hashCode();
         ServiceMeta serviceMetadata = null;
         if (this.directAddress != null && !this.directAddress.isEmpty()) {
@@ -172,6 +172,7 @@ public class RpcConsumerImpl implements RpcConsumer, AutoCloseable {
         serviceMetadata.setServicePort(Integer.parseInt(parts[1]));
         serviceMetadata.setServiceName(request.getClassName());
         serviceMetadata.setServiceVersion(request.getServiceVersion());
+        serviceMetadata.setGroup(request.getGroup());
         return serviceMetadata;
     }
 

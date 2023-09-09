@@ -40,6 +40,8 @@ public class RpcReferenceBean implements FactoryBean<Object> {
 
     private ProxyType proxyType = ProxyType.JDK; // 默认为JDK代理
 
+    private String group;
+
 
     @Override
     public Object getObject(){
@@ -88,7 +90,7 @@ public class RpcReferenceBean implements FactoryBean<Object> {
         for (RpcProxy proxy : loader) {
             if (proxyType.getName().equals(proxy.getType())) {
                 CircuitBreaker simpleCircuitBreaker = CircuitBreakerFactory.createCircuitBreaker(CircuitBreakerFactory.BreakerType.SIMPLE, 5, 60000, 5000);
-                return proxy.getProxy(interfaceClass, serviceVersion, timeout, registryService, RpcConsumerFactory.getInstance(), simpleCircuitBreaker);
+                return proxy.getProxy(interfaceClass, serviceVersion, timeout, registryService, RpcConsumerFactory.getInstance(), simpleCircuitBreaker,group);
             }
         }
         throw new RpcException(SystemErrorCode.ILLEGAL_ARGUMENT_ERROR,new IllegalArgumentException(),"Unsupported proxy type: " + proxyType);
@@ -128,5 +130,13 @@ public class RpcReferenceBean implements FactoryBean<Object> {
 
     public void setDirectAddress(String directAddress) {
         this.directAddress = directAddress;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
     }
 }

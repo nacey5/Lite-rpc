@@ -13,4 +13,5 @@ public class MiniRpcRequest implements Serializable {
     private Object[] params;
     private Class<?>[] parameterTypes;
     private RpcContext rpcContext;
+    private String group;
 }

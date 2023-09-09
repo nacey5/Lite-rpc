@@ -62,7 +62,7 @@ public class RpcRequestHandler extends SimpleChannelInboundHandler<MiniRpcProtoc
     }
 
     private Object handle(MiniRpcRequest request) throws Throwable {
-        String serviceKey = RpcServiceHelper.buildServiceKey(request.getClassName(), request.getServiceVersion());
+        String serviceKey = RpcServiceHelper.buildServiceKey(request.getClassName(), request.getServiceVersion(),request.getGroup());
         Object serviceBean = rpcServiceMap.get(serviceKey);
 
         if (serviceBean == null) {
