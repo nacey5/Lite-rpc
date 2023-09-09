@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.*;
 public class HelloController {
 
     @SuppressWarnings({"SpringJavaAutowiredFieldsWarningInspection", "SpringJavaInjectionPointsAutowiringInspection"})
-//    @RpcReference(serviceVersion = "1.0.0", timeout = 10000,proxyType = ProxyType.JAVASSIST,directAddress = "")//
-    @RpcStub(HelloFacadeLocalImpl.class)
+    @RpcReference(serviceVersion = "1.0.0", timeout = 10000,proxyType = ProxyType.JAVASSIST,directAddress = "")//
+//    @RpcStub(HelloFacadeLocalImpl.class)
     private HelloFacade helloFacade;
 
     @RequestMapping(value = "/hello", method = RequestMethod.GET)
