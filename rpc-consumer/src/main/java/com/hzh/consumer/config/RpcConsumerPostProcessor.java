@@ -9,6 +9,7 @@ import com.hzh.rpc.common.RpcConstants;
 import com.hzh.rpc.exception.errorcode.ReflectionErrorCode;
 import com.hzh.rpc.local.annotations.RpcStub;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.reflections.Reflections;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
@@ -30,7 +31,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static com.hzh.rpc.util.Checker.CheckNotNull;
+import static com.hzh.rpc.util.Checker.checkNotNull;
 
 @Component
 @Slf4j
@@ -54,7 +55,7 @@ public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanCl
         for (String beanDefinitionName : beanFactory.getBeanDefinitionNames()) {
             BeanDefinition beanDefinition = beanFactory.getBeanDefinition(beanDefinitionName);
             String beanClassName = beanDefinition.getBeanClassName();
-            if (beanClassName != null) {
+            if (StringUtils.isNotBlank(beanClassName)) {
                 Class<?> clazz = ClassUtils.resolveClassName(beanClassName, this.classLoader);
                 processFields(clazz);
             }
@@ -123,7 +124,7 @@ public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanCl
     private void parseHook(){
         // hook基础包名，后续将更改为配置，但是如果脱离了框架去识别配置文件，会导致启动比较慢的问题
         Reflections reflections = new Reflections("com.hzh.consumer.hook.instance");
-        CheckNotNull(reflections, ReflectionErrorCode.REFLECTION_ERROR_CODE,"Please check whether your basic package name is <com.hzh.consumer.hook.instance>");
+        checkNotNull(reflections, ReflectionErrorCode.REFLECTION_ERROR_CODE,"Please check whether your basic package name is <com.hzh.consumer.hook.instance>");
         Set<Class<?>> annotatedClasses = reflections.getTypesAnnotatedWith(HookShutdown.class);
         for (Class<?> clazz : annotatedClasses) {
             if (ShutdownHook.class.isAssignableFrom(clazz)) { // 确保类实现了ShutdownHook接口

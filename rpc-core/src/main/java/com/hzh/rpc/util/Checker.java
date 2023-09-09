@@ -12,13 +12,13 @@ import com.hzh.rpc.exception.errorcode.SystemErrorCode;
  * @Version 0.0.1
  **/
 public class Checker {
-    public static void CheckNotNull(Object point, ErrorCode errorCode,String msg){
+    public static void checkNotNull(Object point, ErrorCode errorCode,String msg){
         if (point==null){
             throw new RpcException(errorCode,msg);
         }
     }
 
-    public static void CheckNotNull(Object point){
+    public static void checkNotNull(Object point){
         if (point==null){
             throw new RpcException(SystemErrorCode.PARAM_NULL_ERROR,"the param must not be null");
         }

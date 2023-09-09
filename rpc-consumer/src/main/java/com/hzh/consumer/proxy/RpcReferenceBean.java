@@ -6,6 +6,9 @@ import com.hzh.consumer.factory.CircuitBreakerFactory;
 import com.hzh.provider.registry.RegistryFactory;
 import com.hzh.rpc.circuitbreaker.CircuitBreaker;
 import com.hzh.rpc.common.RpcConsumer;
+import com.hzh.rpc.exception.RpcException;
+import com.hzh.rpc.exception.errorcode.NetErrorCode;
+import com.hzh.rpc.exception.errorcode.SystemErrorCode;
 import com.hzh.rpc.register.RegistryService;
 import com.hzh.provider.registry.RegistryType;
 import com.hzh.rpc.spi.proxy.RpcProxy;
@@ -48,7 +51,7 @@ public class RpcReferenceBean implements FactoryBean<Object> {
         return interfaceClass;
     }
 
-
+    //在代理的时候会去调用这个方法，这也是netty的核心逻辑之一
     public void init() throws Exception {
         if (isDirectConnection()) {
             setupDirectConnection();
@@ -65,7 +68,7 @@ public class RpcReferenceBean implements FactoryBean<Object> {
     private void setupDirectConnection() throws Exception {
         String[] parts = this.directAddress.split(DIRECT_ADDRESS_DELIMITER);
         if (parts.length != 2) {
-            throw new IllegalArgumentException("Invalid directAddress format. Expected format: " + DIRECT_ADDRESS_FORMAT);
+            throw new RpcException(NetErrorCode.HOST_PORT_ERROR,"Invalid directAddress format. Expected format: " + DIRECT_ADDRESS_FORMAT);
         }
         String host = parts[0];
         int port = Integer.parseInt(parts[1]);
@@ -74,7 +77,7 @@ public class RpcReferenceBean implements FactoryBean<Object> {
         ChannelFuture future = instance.tryConnect();
         if (!future.isSuccess()) {
             log.error("Failed to directly connect to {}:{}", host, port);
-            throw new RuntimeException("Failed to directly connect to " + directAddress);
+            throw new RpcException(NetErrorCode.CONNECT_ERROR,"Failed to directly connect to " + directAddress);
         }
         log.info("Directly connected to {}:{}", host, port);
         this.object = createProxy(null);
@@ -88,7 +91,7 @@ public class RpcReferenceBean implements FactoryBean<Object> {
                 return proxy.getProxy(interfaceClass, serviceVersion, timeout, registryService, RpcConsumerFactory.getInstance(), simpleCircuitBreaker);
             }
         }
-        throw new IllegalArgumentException("Unsupported proxy type: " + proxyType);
+        throw new RpcException(SystemErrorCode.ILLEGAL_ARGUMENT_ERROR,new IllegalArgumentException(),"Unsupported proxy type: " + proxyType);
     }
 
     private boolean isDirectConnection() {

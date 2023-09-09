@@ -9,7 +9,8 @@ package com.hzh.rpc.exception.errorcode;
  **/
 public enum SystemErrorCode implements ErrorCode{
 
-    PARAM_NULL_ERROR("SY00001","Parameter cannot be null")
+    PARAM_NULL_ERROR("SY00001","Parameter cannot be null"),
+    ILLEGAL_ARGUMENT_ERROR("SY00002","IllegalArgument resolve fail")
 
     ;
     private String code;

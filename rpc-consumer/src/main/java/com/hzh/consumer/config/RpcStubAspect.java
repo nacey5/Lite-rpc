@@ -8,7 +8,9 @@ package com.hzh.consumer.config;
  * @Version 0.0.1
  **/
 
+import com.hzh.rpc.exception.errorcode.SystemErrorCode;
 import com.hzh.rpc.local.annotations.RpcStub;
+import com.hzh.rpc.util.Checker;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -32,6 +34,7 @@ public class RpcStubAspect {
                     field.setAccessible(true);
                     // 获取类
                     Class<?> value = rpcStub.value();
+                    Checker.checkNotNull(value, SystemErrorCode.PARAM_NULL_ERROR,"the @RpcStub value must not be null");
                     Constructor<?> constructor = value.getConstructor();
                     Object newInstance = constructor.newInstance();
                     // 这里可以进一步初始化新创建的实例，如果需要

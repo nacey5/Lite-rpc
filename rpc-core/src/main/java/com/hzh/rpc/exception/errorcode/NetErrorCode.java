@@ -10,7 +10,11 @@ package com.hzh.rpc.exception.errorcode;
 public enum NetErrorCode implements ErrorCode{
 
 
-    TIME_OUT_ERROR("RPC10001","Network link timeout")
+    TIME_OUT_ERROR("RPC10001","Network link timeout"),
+
+    HOST_PORT_ERROR("RPC10002","Host port format error"),
+
+    CONNECT_ERROR("RPC10003","The connection failed, please check that various parameters are configured correctly.")
 
     ;
 

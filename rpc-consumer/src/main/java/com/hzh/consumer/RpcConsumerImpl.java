@@ -80,6 +80,7 @@ public class RpcConsumerImpl implements RpcConsumer, AutoCloseable {
     }
 
 
+    //todo 这是一个小兜底，我有想着要不要把一些消费是实例任务改成弱引用
     @Override
     protected void finalize() throws Throwable {
         super.finalize();

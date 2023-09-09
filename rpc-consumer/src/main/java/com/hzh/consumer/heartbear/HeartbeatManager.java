@@ -22,6 +22,9 @@ import static com.hzh.provider.registry.RegistryFactory.registryService;
  **/
 @Slf4j
 public class HeartbeatManager {
+
+    private static final Integer DEFAULT_DELAY = 0;
+    private static final Integer DEFAULT_PERIOD = 10;
     private final RpcConsumerImpl rpcConsumer;
     private final ScheduledExecutorService heartbeatExecutor = Executors.newScheduledThreadPool(1);
 
@@ -66,7 +69,7 @@ public class HeartbeatManager {
             } catch (Exception e) {
                 log.error("Error sending heartbeat", e);
             }
-        }, 0, 10, TimeUnit.SECONDS);
+        }, DEFAULT_DELAY, DEFAULT_PERIOD, TimeUnit.SECONDS);
     }
 }
 
