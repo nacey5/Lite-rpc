@@ -10,7 +10,6 @@ import com.hzh.provider.annotation.RpcService;
  * @Version 0.0.1
  **/
 @RpcService(serviceInterface = HelloFacade.class, serviceVersion = "1.0.0",group = "Second")
-
 public class HelloFacadeImpl2 implements HelloFacade{
     @Override
     public String hello(String name) {

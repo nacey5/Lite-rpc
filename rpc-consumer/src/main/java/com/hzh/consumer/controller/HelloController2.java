@@ -16,7 +16,7 @@
 // **/
 //@RestController
 //public class HelloController2 {
-//    @RpcReference(serviceVersion = "1.0.0", timeout = 10000,proxyType = ProxyType.JAVASSIST,directAddress = "",group = "Second")//
+//    @RpcReference(serviceVersion = "1.0.0", timeout = 10000,proxyType = ProxyType.JDK,directAddress = "",group = "Second")//
 ////    @RpcStub(HelloFacadeLocalImpl.class)
 //    private HelloFacade helloFacade;
 //
