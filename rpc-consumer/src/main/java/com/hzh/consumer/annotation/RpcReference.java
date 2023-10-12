@@ -17,7 +17,7 @@ public @interface RpcReference {
 
     String registryType() default "ZOOKEEPER";
 
-    String registryAddress() default "192.168.199.132:2181";
+    String registryAddress() default "192.168.199.140:2181";
 
     String group() default "";
 
@@ -28,3 +28,4 @@ public @interface RpcReference {
     String directAddress() default ""; // 默认为空，表示不使用直连
 
 }
+

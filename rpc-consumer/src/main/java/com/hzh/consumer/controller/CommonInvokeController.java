@@ -32,7 +32,7 @@ public class CommonInvokeController {
         String serviceVersion = "1.0.0";  // 从配置或其他地方获取
         long timeout = 5000;  // 从配置或其他地方获取
         Class<?>[] parameterTypes = transferToTypes(parameterTypeNames);
-        String group="";
+        String group="1.0.0";
         Object[] args = transferToObjects(reqBody, parameterTypes);
         CircuitBreaker simpleCircuitBreaker= CircuitBreakerFactory.createCircuitBreaker(CircuitBreakerFactory.BreakerType.SIMPLE, 5, 60000, 5000);
         // 使用泛化调用
