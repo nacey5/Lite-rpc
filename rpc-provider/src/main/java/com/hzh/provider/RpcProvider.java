@@ -20,6 +20,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -88,7 +89,7 @@ public class RpcProvider implements InitializingBean, BeanPostProcessor {
     }
 
     private boolean isDirectConnectionConfigured() {
-        return rpcProperties.getDirectAddress() != null && !rpcProperties.getDirectAddress().isEmpty();
+        return (rpcProperties.getDirectAddress() != null && !rpcProperties.getDirectAddress().isEmpty()) && !StringUtils.isBlank(rpcProperties.getDirectAddress());
     }
 
     private void startDirectConnectionServer(EventLoopGroup boss, EventLoopGroup worker) throws InterruptedException {

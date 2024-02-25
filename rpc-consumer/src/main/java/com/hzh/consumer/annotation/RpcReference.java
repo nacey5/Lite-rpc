@@ -17,7 +17,7 @@ public @interface RpcReference {
 
     String registryType() default "ZOOKEEPER";
 
-    String registryAddress() default "192.168.199.140:2181";
+    String registryAddress() default "192.168.1.101:2181";
 
     String group() default "";
 
